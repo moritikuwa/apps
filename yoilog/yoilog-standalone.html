@@ -1,0 +1,3034 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14171d">
+<meta name="description" content="毎日の晩酌を記録して、翌朝のからだと眠りに何が起きたかを突き合わせる記録アプリ。">
+<title>酔いログ — 今日の一杯が、明日のからだに何をするか</title>
+<style>
+/* ============================================================
+   酔いログ / YOI-LOG   スタイル
+   ============================================================ */
+:root {
+  --bg: #14171d;
+  --bg2: #1b1f27;
+  --card: #212733;
+  --card2: #272e3c;
+  --line: rgba(255, 255, 255, .09);
+  --text: #e9edf3;
+  --muted: #9aa5b5;
+  --dim: #6f7c8f;
+  --amber: #e0b341;
+  --amber-d: #b8912c;
+  --green: #3ba676;
+  --red: #d94a4a;
+  --deep: #a02a58;
+  --blue: #6fb3e0;
+  --radius: 14px;
+  --shadow: 0 6px 24px rgba(0, 0, 0, .35);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+               "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+body { padding-bottom: 78px; }
+
+.wrap { max-width: 620px; margin: 0 auto; padding: 0 14px; }
+
+/* ---------- ヘッダー ---------- */
+.appbar {
+  position: sticky; top: 0; z-index: 40;
+  background: linear-gradient(180deg, #191d25 0%, rgba(25, 29, 37, .96) 100%);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(8px);
+}
+.appbar-in { max-width: 620px; margin: 0 auto; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
+.logo { font-weight: 800; letter-spacing: .04em; font-size: 17px; }
+.logo span { color: var(--amber); }
+.appbar .sub { color: var(--dim); font-size: 11.5px; margin-left: auto; text-align: right; line-height: 1.35; }
+
+/* ---------- カード ---------- */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin: 14px 0;
+}
+.card.flat { background: var(--bg2); }
+.card h2 { font-size: 15px; margin: 0 0 10px; letter-spacing: .02em; }
+.card h3 { font-size: 13.5px; margin: 18px 0 8px; color: var(--muted); font-weight: 700; }
+.card p { margin: 8px 0; }
+
+.section-title {
+  font-size: 12px; letter-spacing: .14em; color: var(--dim);
+  margin: 22px 0 6px; font-weight: 700;
+}
+
+.muted { color: var(--muted); }
+.dim { color: var(--dim); font-size: 12.5px; }
+.small { font-size: 12.5px; }
+.center { text-align: center; }
+.nowrap { white-space: nowrap; }
+
+/* ---------- ボタン ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border: 1px solid var(--line); background: var(--card2); color: var(--text);
+  border-radius: 10px; padding: 10px 14px; font-size: 14px; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+}
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--amber); color: #241c04; border-color: transparent; }
+.btn.danger { background: transparent; color: var(--red); border-color: rgba(217, 74, 74, .5); }
+.btn.ghost { background: transparent; }
+.btn.block { width: 100%; }
+.btn.sm { padding: 6px 10px; font-size: 12.5px; border-radius: 8px; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ---------- フォーム ---------- */
+label.field { display: block; margin: 12px 0 0; }
+label.field > span { display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 5px; }
+input, select, textarea {
+  width: 100%; background: var(--bg2); color: var(--text);
+  border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
+  font-size: 15px; font-family: inherit;
+}
+input[type="number"] { -moz-appearance: textfield; }
+textarea { min-height: 72px; resize: vertical; line-height: 1.6; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+/* チップ選択 */
+.chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 6px; }
+.chip {
+  border: 1px solid var(--line); background: var(--bg2); color: var(--muted);
+  border-radius: 999px; padding: 6px 12px; font-size: 13px; cursor: pointer; font-family: inherit;
+}
+.chip.on { background: rgba(224, 179, 65, .16); border-color: var(--amber); color: var(--amber); }
+
+/* 段階選択（0〜3など） */
+.levels { display: flex; gap: 6px; }
+.levels button {
+  flex: 1; border: 1px solid var(--line); background: var(--bg2); color: var(--dim);
+  border-radius: 8px; padding: 7px 2px; font-size: 12px; cursor: pointer; font-family: inherit;
+}
+.levels button.on { color: #241c04; font-weight: 700; border-color: transparent; }
+.levels button.on[data-v="0"] { background: #3ba676; color: #06231a; }
+.levels button.on[data-v="1"] { background: #e0d341; }
+.levels button.on[data-v="2"] { background: #e08a3c; }
+.levels button.on[data-v="3"] { background: #d94a4a; color: #fff; }
+
+.dmg-row { display: grid; grid-template-columns: 122px 1fr; gap: 8px; align-items: center; margin: 7px 0; }
+.dmg-row .nm { font-size: 13px; }
+
+/* ---------- 数値の見せ場 ---------- */
+.hero {
+  background: linear-gradient(160deg, #2a2030 0%, #201d28 60%, #1c1f28 100%);
+  border: 1px solid rgba(224, 179, 65, .2);
+}
+.big {
+  font-size: 46px; font-weight: 800; line-height: 1.05; letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+}
+.big small { font-size: 17px; font-weight: 700; margin-left: 3px; color: var(--muted); }
+.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+.kpi { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 10px; text-align: center; }
+.kpi .v { font-size: 19px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.kpi .l { font-size: 10.5px; color: var(--dim); letter-spacing: .02em; }
+
+.badge {
+  display: inline-block; padding: 3px 10px; border-radius: 999px;
+  font-size: 11.5px; font-weight: 700; letter-spacing: .04em;
+}
+
+/* ---------- アバター ---------- */
+.avatar-wrap { display: flex; gap: 14px; align-items: center; }
+.avatar-svg { width: 128px; height: 205px; flex: none; }
+.avatar-note { flex: 1; font-size: 13px; }
+.organ { transition: opacity .3s; }
+.organ-pulse { animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+
+.belly-meter { height: 6px; background: var(--bg2); border-radius: 3px; overflow: hidden; margin-top: 6px; }
+.belly-meter i { display: block; height: 100%; background: linear-gradient(90deg, #3ba676, #e0b341, #d94a4a); }
+
+/* ---------- カレンダー ---------- */
+.cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.cal-title { font-size: 16px; font-weight: 700; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-dow { text-align: center; font-size: 10.5px; color: var(--dim); padding: 2px 0; }
+.cal-dow.sun { color: #e07a8c; } .cal-dow.sat { color: #7fb0e0; }
+.cal-cell {
+  aspect-ratio: 1 / 1.12; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--bg2); padding: 3px; cursor: pointer; position: relative;
+  display: flex; flex-direction: column; align-items: center; overflow: hidden;
+}
+.cal-cell.empty { border: none; background: none; cursor: default; }
+.cal-cell.today { border-color: var(--amber); }
+.cal-cell .d { font-size: 11px; color: var(--muted); line-height: 1.3; }
+.cal-cell .g { font-size: 10.5px; font-weight: 800; font-variant-numeric: tabular-nums; margin-top: auto; }
+.cal-cell .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; }
+.cal-cell .mk { font-size: 11px; line-height: 1; }
+.cal-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; font-size: 11px; color: var(--dim); }
+.cal-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+
+/* ---------- 一覧の行 ---------- */
+.drink-item {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg2); border: 1px solid var(--line); border-radius: 10px;
+  padding: 9px 11px; margin: 7px 0;
+}
+.drink-item .em { font-size: 20px; }
+.drink-item .tx { flex: 1; min-width: 0; }
+.drink-item .tx b { font-size: 13.5px; font-weight: 700; }
+.drink-item .tx .s { font-size: 11.5px; color: var(--dim); }
+.drink-item .g { font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--amber); }
+.drink-item .x { color: var(--dim); background: none; border: none; font-size: 18px; cursor: pointer; padding: 0 2px; }
+
+/* ---------- タイムライン ---------- */
+.tl { position: relative; padding-left: 24px; margin-top: 8px; }
+.tl:before { content: ''; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 2px; background: linear-gradient(180deg, var(--amber), var(--deep)); opacity: .5; }
+.tl-item { position: relative; margin: 0 0 18px; }
+.tl-item:before {
+  content: ''; position: absolute; left: -21px; top: 7px; width: 10px; height: 10px;
+  border-radius: 50%; background: var(--amber); box-shadow: 0 0 0 3px rgba(224, 179, 65, .16);
+}
+.tl-item.lv4:before, .tl-item.lv5:before { background: var(--red); box-shadow: 0 0 0 3px rgba(217, 74, 74, .18); }
+.tl-t { font-size: 11px; letter-spacing: .06em; color: var(--dim); }
+.tl-h { font-size: 14.5px; font-weight: 700; margin: 1px 0 4px; }
+.tl-b { font-size: 13px; color: #c8d1de; }
+.tl-organ { font-size: 11px; color: var(--dim); }
+
+/* ---------- グラフ ---------- */
+.chart { width: 100%; height: auto; display: block; overflow: visible; }
+.chart-scroll { overflow-x: auto; }
+.ctick { fill: #7d8899; font-size: 11px; }
+.clabel { fill: #9aa5b5; font-size: 11.5px; }
+
+.cmp { margin-top: 8px; }
+.cmp-row { display: grid; grid-template-columns: 136px 1fr 58px; gap: 8px; align-items: center; margin: 6px 0; }
+.cmp-label { font-size: 12.5px; color: var(--muted); }
+.cmp-track { background: var(--bg2); border-radius: 5px; height: 16px; overflow: hidden; }
+.cmp-fill { height: 100%; border-radius: 5px; }
+.cmp-value { text-align: right; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.cmp-sub { font-size: 11.5px; color: var(--dim); margin: -2px 0 8px 126px; }
+
+.stat-row { border-top: 1px solid var(--line); padding: 9px 0 8px; }
+.stat-row:first-of-type { border-top: none; }
+.sr-label { font-size: 12.5px; color: var(--muted); }
+.sr-vals { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 2px; }
+.sr-vals span { font-size: 13px; }
+.sr-vals i { font-style: normal; color: var(--dim); font-size: 11.5px; }
+.sr-vals b { font-variant-numeric: tabular-nums; font-size: 15px; }
+.sr-judge { font-size: 11.5px; margin-top: 2px; }
+
+/* ---------- 判定・警告 ---------- */
+.verdict {
+  border-radius: 12px; padding: 14px; margin: 12px 0;
+  border-left: 4px solid var(--amber); background: rgba(224, 179, 65, .08);
+}
+.verdict.good { border-left-color: var(--green); background: rgba(59, 166, 118, .1); }
+.verdict.bad { border-left-color: var(--red); background: rgba(217, 74, 74, .1); }
+/* 先頭の見出しだけを行に分ける。文中の <b> は行内のままにする */
+.verdict > b:first-child { display: block; margin-bottom: 4px; font-size: 14.5px; }
+
+.warn { border-radius: 12px; padding: 12px 14px; margin: 10px 0; background: var(--bg2); border-left: 4px solid var(--amber); }
+.warn.high { border-left-color: var(--red); }
+.warn b { display: block; font-size: 13.5px; margin-bottom: 3px; }
+.warn p { margin: 0; font-size: 12.5px; color: var(--muted); }
+
+.sos { border: 1px solid rgba(217, 74, 74, .45); background: rgba(217, 74, 74, .07); }
+.sos ul { margin: 6px 0; padding-left: 20px; }
+.sos li { margin: 3px 0; font-size: 13px; }
+
+/* ---------- タブ ---------- */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+  background: rgba(21, 25, 32, .97); border-top: 1px solid var(--line);
+  backdrop-filter: blur(10px);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tabbar-in { max-width: 620px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); }
+.tabbar button {
+  background: none; border: none; color: var(--dim); padding: 8px 0 9px;
+  font-size: 10.5px; cursor: pointer; font-family: inherit; display: flex;
+  flex-direction: column; align-items: center; gap: 2px;
+}
+.tabbar button .i { font-size: 19px; line-height: 1; }
+.tabbar button.on { color: var(--amber); }
+
+/* ---------- モーダル ---------- */
+.sheet-bg {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, .6); z-index: 60;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.sheet {
+  background: var(--bg2); width: 100%; max-width: 620px; max-height: 92vh; overflow-y: auto;
+  border-radius: 18px 18px 0 0; border-top: 1px solid var(--line); box-shadow: var(--shadow);
+  padding: 14px 14px calc(24px + env(safe-area-inset-bottom));
+}
+.sheet-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; position: sticky; top: -14px; background: var(--bg2); padding: 6px 0; z-index: 2; }
+.sheet-head h2 { flex: 1; margin: 0; font-size: 16px; }
+.sheet-head .x { background: none; border: none; color: var(--muted); font-size: 24px; cursor: pointer; line-height: 1; }
+
+.tabs { display: flex; gap: 6px; margin: 8px 0 4px; }
+.tabs button {
+  flex: 1; background: var(--card); border: 1px solid var(--line); color: var(--muted);
+  border-radius: 9px; padding: 8px; font-size: 13px; cursor: pointer; font-family: inherit; font-weight: 600;
+}
+.tabs button.on { background: rgba(224, 179, 65, .16); border-color: var(--amber); color: var(--amber); }
+
+hr.sep { border: none; border-top: 1px solid var(--line); margin: 16px 0; }
+
+.foot { color: var(--dim); font-size: 11.5px; padding: 20px 4px 8px; line-height: 1.75; }
+
+@media (min-width: 700px) {
+  .wrap, .appbar-in, .tabbar-in, .sheet { max-width: 760px; }
+  .avatar-svg { width: 158px; height: 253px; }
+}
+
+</style>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+
+<header class="appbar">
+  <div class="appbar-in">
+    <div class="logo">酔<span>いログ</span></div>
+    <div class="sub" id="appbar-sub"></div>
+  </div>
+</header>
+
+<main id="app" class="wrap"></main>
+
+<div id="sheet-host"></div>
+
+<nav class="tabbar">
+  <div class="tabbar-in" id="tabbar">
+    <button data-view="home"><span class="i">🏠</span>きょう</button>
+    <button data-view="calendar"><span class="i">📅</span>カレンダー</button>
+    <button data-view="body"><span class="i">🫀</span>からだ</button>
+    <button data-view="stats"><span class="i">📊</span>ふりかえり</button>
+    <button data-view="settings"><span class="i">⚙️</span>設定</button>
+  </div>
+</nav>
+<script>
+/* ============================================================
+   酔いログ / YOI-LOG   マスタデータ
+   お酒の種類・割り方・カクテル・記録項目・体内知識
+   ============================================================ */
+(function (root) {
+  'use strict';
+
+  var AL = root.AL || (root.AL = {});
+
+  /* ------------------------------------------------------------
+     お酒マスタ
+     kind: 'ready'  = そのまま飲む（ビール・日本酒・ワイン・缶チューハイ等）
+                      → 入力する ml は「飲む量そのもの」
+           'spirit' = 原液を割って飲む（焼酎・ウイスキー・ジン等）
+                      → 入力する ml は「原液の量」。割り材は別で足す
+     abv    : 標準アルコール度数(%)
+     sugarKcal100 : そのお酒 100ml のうち、アルコール以外に由来する
+                    おおよそのカロリー(kcal)。糖質分。
+                    総カロリー = 純アルコールg×7.1 + この分
+     ------------------------------------------------------------ */
+  AL.DRINKS = [
+    { id: 'beer', name: 'ビール', emoji: '🍺', kind: 'ready', abv: 5, sugarKcal100: 12,
+      serves: [
+        { name: '中ジョッキ 500ml', ml: 500 },
+        { name: '小ジョッキ 350ml', ml: 350 },
+        { name: '缶 350ml', ml: 350 },
+        { name: '缶 500ml', ml: 500 },
+        { name: '小瓶 334ml', ml: 334 },
+        { name: '中瓶 500ml', ml: 500 },
+        { name: '大瓶 633ml', ml: 633 },
+        { name: 'ピッチャー 1500ml', ml: 1500 }
+      ] },
+
+    { id: 'happoshu', name: '発泡酒・第三のビール', emoji: '🍺', kind: 'ready', abv: 5, sugarKcal100: 10,
+      serves: [ { name: '缶 350ml', ml: 350 }, { name: '缶 500ml', ml: 500 }, { name: 'グラス 350ml', ml: 350 } ] },
+
+    { id: 'sake', name: '日本酒', emoji: '🍶', kind: 'ready', abv: 15, sugarKcal100: 18,
+      serves: [
+        { name: 'おちょこ 30ml', ml: 30 },
+        { name: 'グラス 120ml', ml: 120 },
+        { name: '一合 180ml', ml: 180 },
+        { name: '二合 360ml', ml: 360 },
+        { name: '四合瓶 720ml', ml: 720 }
+      ] },
+
+    { id: 'shochu', name: '焼酎（乙類・本格）', emoji: '🍶', kind: 'spirit', abv: 25, sugarKcal100: 0,
+      serves: [
+        { name: '薄め 原液 60ml', ml: 60 },
+        { name: 'ふつう 原液 90ml', ml: 90 },
+        { name: '濃いめ 原液 120ml', ml: 120 },
+        { name: '一合 原液 180ml', ml: 180 }
+      ] },
+
+    { id: 'shochu_ko', name: '焼酎（甲類・25度）', emoji: '🍶', kind: 'spirit', abv: 25, sugarKcal100: 0,
+      serves: [ { name: '薄め 原液 60ml', ml: 60 }, { name: 'ふつう 原液 90ml', ml: 90 }, { name: '濃いめ 原液 120ml', ml: 120 } ] },
+
+    { id: 'awamori', name: '泡盛', emoji: '🍶', kind: 'spirit', abv: 30, sugarKcal100: 0,
+      serves: [ { name: '薄め 原液 60ml', ml: 60 }, { name: 'ふつう 原液 90ml', ml: 90 }, { name: '濃いめ 原液 120ml', ml: 120 } ] },
+
+    { id: 'whisky', name: 'ウイスキー', emoji: '🥃', kind: 'spirit', abv: 40, sugarKcal100: 0,
+      serves: [
+        { name: 'シングル 30ml', ml: 30 },
+        { name: 'ダブル 60ml', ml: 60 },
+        { name: 'ハイボール用 45ml', ml: 45 },
+        { name: '濃いめ 90ml', ml: 90 }
+      ] },
+
+    { id: 'brandy', name: 'ブランデー', emoji: '🥃', kind: 'spirit', abv: 40, sugarKcal100: 0,
+      serves: [ { name: 'シングル 30ml', ml: 30 }, { name: 'ダブル 60ml', ml: 60 } ] },
+
+    { id: 'gin', name: 'ジン', emoji: '🍸', kind: 'spirit', abv: 40, sugarKcal100: 0,
+      serves: [ { name: 'シングル 30ml', ml: 30 }, { name: 'ダブル 45ml', ml: 45 } ] },
+
+    { id: 'vodka', name: 'ウォッカ', emoji: '🍸', kind: 'spirit', abv: 40, sugarKcal100: 0,
+      serves: [ { name: 'シングル 30ml', ml: 30 }, { name: 'ダブル 45ml', ml: 45 } ] },
+
+    { id: 'rum', name: 'ラム', emoji: '🥃', kind: 'spirit', abv: 40, sugarKcal100: 0,
+      serves: [ { name: 'シングル 30ml', ml: 30 }, { name: 'ダブル 45ml', ml: 45 } ] },
+
+    { id: 'tequila', name: 'テキーラ', emoji: '🥃', kind: 'spirit', abv: 40, sugarKcal100: 0,
+      serves: [ { name: 'ショット 30ml', ml: 30 }, { name: 'ダブル 60ml', ml: 60 } ] },
+
+    { id: 'wine_red', name: 'ワイン（赤）', emoji: '🍷', kind: 'ready', abv: 12, sugarKcal100: 3,
+      serves: [ { name: 'グラス 120ml', ml: 120 }, { name: '大きめグラス 180ml', ml: 180 }, { name: 'ハーフ 375ml', ml: 375 }, { name: 'ボトル 750ml', ml: 750 } ] },
+
+    { id: 'wine_white', name: 'ワイン（白・スパークリング）', emoji: '🥂', kind: 'ready', abv: 12, sugarKcal100: 5,
+      serves: [ { name: 'グラス 120ml', ml: 120 }, { name: 'フルート 100ml', ml: 100 }, { name: 'ボトル 750ml', ml: 750 } ] },
+
+    { id: 'chuhai', name: '缶チューハイ・サワー', emoji: '🥫', kind: 'ready', abv: 5, sugarKcal100: 22,
+      serves: [ { name: '缶 350ml', ml: 350 }, { name: '缶 500ml', ml: 500 } ] },
+
+    { id: 'chuhai_strong', name: 'ストロング系チューハイ', emoji: '⚡', kind: 'ready', abv: 9, sugarKcal100: 18,
+      serves: [ { name: '缶 350ml', ml: 350 }, { name: '缶 500ml', ml: 500 } ],
+      warn: 'ストロング系500ml 1本＝純アルコール36g。中ジョッキ約2杯分が、たった1本に入っています。' },
+
+    { id: 'lemon_sour', name: 'レモンサワー（店）', emoji: '🍋', kind: 'ready', abv: 6, sugarKcal100: 20,
+      serves: [ { name: 'ジョッキ 350ml', ml: 350 }, { name: '大ジョッキ 500ml', ml: 500 }, { name: '濃いめ 350ml', ml: 350 } ] },
+
+    { id: 'umeshu', name: '梅酒', emoji: '🫙', kind: 'ready', abv: 13, sugarKcal100: 82,
+      serves: [ { name: 'ロック 60ml', ml: 60 }, { name: 'グラス 90ml', ml: 90 } ],
+      warn: '梅酒は「甘い」ぶん糖質のカロリーがビールの数倍。酔いより先に内臓脂肪に効きます。' },
+
+    { id: 'makgeolli', name: 'マッコリ', emoji: '🥛', kind: 'ready', abv: 6, sugarKcal100: 32,
+      serves: [ { name: 'グラス 200ml', ml: 200 }, { name: 'ボトル 750ml', ml: 750 } ] },
+
+    { id: 'shaoxing', name: '紹興酒', emoji: '🍶', kind: 'ready', abv: 16, sugarKcal100: 30,
+      serves: [ { name: 'グラス 100ml', ml: 100 }, { name: '一合 180ml', ml: 180 } ] },
+
+    { id: 'cocktail', name: 'カクテル（プリセットから）', emoji: '🍹', kind: 'cocktail', abv: 0, sugarKcal100: 0, serves: [] },
+
+    { id: 'nonalc', name: 'ノンアルコール', emoji: '🫧', kind: 'ready', abv: 0, sugarKcal100: 15,
+      serves: [ { name: '缶 350ml', ml: 350 }, { name: 'グラス 350ml', ml: 350 } ],
+      praise: 'ノンアルは記録して大丈夫。「飲んだ気分」だけ取り出せた日は、肝臓にとっては休肝日です。' },
+
+    { id: 'other', name: 'その他（自分で入力）', emoji: '❓', kind: 'ready', abv: 10, sugarKcal100: 10,
+      serves: [ { name: '100ml', ml: 100 }, { name: '200ml', ml: 200 }, { name: '350ml', ml: 350 } ] }
+  ];
+
+  /* ------------------------------------------------------------
+     割り方マスタ
+     absorb : アルコールの吸収の速さの目安（1.0 が水割り基準）
+     kcal100: 割り材 100ml あたりのカロリー
+     ratio  : 原液1に対する割り材の標準比率
+     ------------------------------------------------------------ */
+  AL.WARI = [
+    { id: 'none',    name: 'そのまま',     kcal100: 0,  ratio: 0, absorb: 1.00, note: '' },
+    { id: 'straight',name: 'ストレート',   kcal100: 0,  ratio: 0, absorb: 1.15,
+      note: '高い度数のまま胃の粘膜に触れます。粘膜が荒れやすく、吸収も速い飲み方。' },
+    { id: 'rock',    name: 'ロック',       kcal100: 0,  ratio: 0.3, absorb: 1.10,
+      note: '氷が溶けるまでは、ほぼストレートと同じ濃さです。' },
+    { id: 'mizu',    name: '水割り',       kcal100: 0,  ratio: 3, absorb: 1.00,
+      note: '一番おだやかな割り方。ただし薄めても、原液の量が同じなら体に入るアルコールは1gも減りません。' },
+    { id: 'soda',    name: 'ソーダ割り',   kcal100: 0,  ratio: 3, absorb: 1.20,
+      note: '炭酸は胃の動きを速め、アルコールが小腸へ早く送られます。同じ量でも酔いが速く立ち上がります。' },
+    { id: 'oyu',     name: 'お湯割り',     kcal100: 0,  ratio: 3, absorb: 1.10,
+      note: '温かい液体は胃からの移動が速く、酔いが早く回ります。「体が温まる」の正体は血管拡張で、放熱も進みます。' },
+    { id: 'ocha',    name: '緑茶割り',     kcal100: 0,  ratio: 3, absorb: 1.05,
+      note: 'カフェインで「酔いが醒めた気」になりますが、血中のアルコールは1mgも減っていません。' },
+    { id: 'oolong',  name: 'ウーロン割り', kcal100: 0,  ratio: 3, absorb: 1.00, note: '' },
+    { id: 'milk',    name: '牛乳割り',     kcal100: 61, ratio: 3, absorb: 0.80,
+      note: '脂質とタンパク質で胃からの移動が遅れ、酔いはゆっくりになります。ただし総量は変わらず、割り材のカロリーが上乗せされます。' },
+    { id: 'soymilk', name: '豆乳割り',     kcal100: 46, ratio: 3, absorb: 0.85,
+      note: '牛乳割りと同じく吸収はおだやか。「体にいい割り材」でも、アルコールの害は割り引かれません。' },
+    { id: 'cola',    name: 'コーラ割り',   kcal100: 45, ratio: 3, absorb: 1.20,
+      note: '炭酸＋糖分。吸収は速く、カロリーも乗ります。' },
+    { id: 'ginger',  name: 'ジンジャーエール割り', kcal100: 34, ratio: 3, absorb: 1.20, note: '' },
+    { id: 'tonic',   name: 'トニック割り', kcal100: 35, ratio: 3, absorb: 1.20, note: '' },
+    { id: 'juice',   name: 'ジュース割り', kcal100: 42, ratio: 3, absorb: 1.10,
+      note: '甘さでアルコールの角が消え、飲むペースが上がりやすい割り方です。' },
+    { id: 'calpis',  name: 'カルピス割り', kcal100: 46, ratio: 3, absorb: 1.10, note: '' },
+    { id: 'yogurt',  name: 'ヨーグルト割り', kcal100: 62, ratio: 3, absorb: 0.85, note: '' },
+    { id: 'hoji',    name: 'ほうじ茶・麦茶割り', kcal100: 0, ratio: 3, absorb: 1.00, note: '' }
+  ];
+
+  AL.RATIOS = [
+    { id: 'r1', name: '1 : 1（濃いめ）', ratio: 1 },
+    { id: 'r2', name: '1 : 2',           ratio: 2 },
+    { id: 'r3', name: '1 : 3（標準）',   ratio: 3 },
+    { id: 'r4', name: '1 : 4（薄め）',   ratio: 4 },
+    { id: 'r6', name: '1 : 6（かなり薄め）', ratio: 6 }
+  ];
+
+  /* ------------------------------------------------------------
+     カクテル・プリセット
+     base: 使うお酒のid / baseMl: 原液量 / mixKcal: 割り材のカロリー合計
+     ------------------------------------------------------------ */
+  AL.COCKTAILS = [
+    { id: 'highball',   name: 'ハイボール',        base: 'whisky', baseMl: 45, mixKcal: 0,  mixMl: 135, wari: 'soda' },
+    { id: 'highball_k', name: 'ハイボール（濃いめ）', base: 'whisky', baseMl: 60, mixKcal: 0,  mixMl: 120, wari: 'soda' },
+    { id: 'gintonic',   name: 'ジントニック',      base: 'gin',    baseMl: 45, mixKcal: 42, mixMl: 120, wari: 'tonic' },
+    { id: 'moscow',     name: 'モスコミュール',    base: 'vodka',  baseMl: 45, mixKcal: 41, mixMl: 120, wari: 'ginger' },
+    { id: 'screw',      name: 'スクリュードライバー', base: 'vodka', baseMl: 45, mixKcal: 50, mixMl: 120, wari: 'juice' },
+    { id: 'cassis_or',  name: 'カシスオレンジ',    base: 'other',  baseMl: 45, abv: 20, mixKcal: 50, mixMl: 120, wari: 'juice' },
+    { id: 'kahlua',     name: 'カルーアミルク',    base: 'other',  baseMl: 45, abv: 20, mixKcal: 73, mixMl: 120, wari: 'milk' },
+    { id: 'cuba',       name: 'キューバリブレ',    base: 'rum',    baseMl: 45, mixKcal: 54, mixMl: 120, wari: 'cola' },
+    { id: 'martini',    name: 'マティーニ',        base: 'gin',    baseMl: 60, mixKcal: 8,  mixMl: 15,  wari: 'straight' },
+    { id: 'margarita',  name: 'マルガリータ',      base: 'tequila',baseMl: 45, mixKcal: 30, mixMl: 30,  wari: 'straight' },
+    { id: 'mojito',     name: 'モヒート',          base: 'rum',    baseMl: 45, mixKcal: 40, mixMl: 120, wari: 'soda' },
+    { id: 'longisland', name: 'ロングアイランドアイスティー', base: 'vodka', baseMl: 60, abv: 40, mixKcal: 60, mixMl: 120, wari: 'cola',
+      warn: '4〜5種類のスピリッツが入る、見た目に反して最も強いカクテルのひとつです。' },
+    { id: 'sours',      name: 'サワー（店の一般的なもの）', base: 'shochu_ko', baseMl: 60, mixKcal: 30, mixMl: 240, wari: 'soda' },
+    { id: 'shandy',     name: 'シャンディガフ',    base: 'beer',   baseMl: 200, abv: 5, mixKcal: 60, mixMl: 150, wari: 'ginger' }
+  ];
+
+  /* ------------------------------------------------------------
+     翌朝のダメージ項目（0〜3で記録）
+     ------------------------------------------------------------ */
+  AL.DAMAGE_ITEMS = [
+    { id: 'headache',    name: '頭痛',            emoji: '🤕', organ: 'brain' },
+    { id: 'nausea',      name: '吐き気・胃もたれ', emoji: '🤢', organ: 'stomach' },
+    { id: 'fatigue',     name: 'だるさ・疲労感',   emoji: '🥱', organ: 'body' },
+    { id: 'thirst',      name: '口の渇き',        emoji: '🏜️', organ: 'body' },
+    { id: 'palpitation', name: '動悸・心拍が速い', emoji: '💓', organ: 'heart' },
+    { id: 'diarrhea',    name: '下痢・腹の不調',   emoji: '🚽', organ: 'gut' },
+    { id: 'blackout',    name: '記憶があいまい',   emoji: '🌀', organ: 'brain' },
+    { id: 'motivation',  name: 'やる気が出ない',   emoji: '🪫', organ: 'brain' },
+    { id: 'irritated',   name: 'イライラ・不安',   emoji: '😠', organ: 'brain' },
+    { id: 'swelling',    name: '顔・脚のむくみ',   emoji: '🎈', organ: 'body' }
+  ];
+
+  AL.DAMAGE_LEVELS = ['なし', '少し', 'つらい', 'かなり'];
+
+  /* 飲んだ理由 */
+  AL.REASONS = [
+    { id: 'habit',   name: '習慣・なんとなく', emoji: '🔁' },
+    { id: 'sleep',   name: '寝るため',        emoji: '🌙' },
+    { id: 'stress',  name: 'ストレス・嫌なことがあった', emoji: '💢' },
+    { id: 'reward',  name: '自分へのご褒美',   emoji: '🎁' },
+    { id: 'social',  name: '付き合い・会食',   emoji: '👥' },
+    { id: 'happy',   name: '嬉しいことがあった', emoji: '🎉' },
+    { id: 'lonely',  name: 'ひとりで手持ち無沙汰', emoji: '🪑' },
+    { id: 'food',    name: '食事に合わせて',   emoji: '🍽️' }
+  ];
+
+  /* 寝つきの選択肢（分） */
+  AL.LATENCY = [
+    { v: 5,  name: '横になってすぐ（5分以内）' },
+    { v: 15, name: '15分くらい' },
+    { v: 30, name: '30分くらい' },
+    { v: 60, name: '1時間くらい' },
+    { v: 90, name: '1時間以上、なかなか寝つけない' }
+  ];
+
+  /* ------------------------------------------------------------
+     基準値（厚生労働省「健康に配慮した飲酒に関するガイドライン」2024年2月 ほか）
+     ------------------------------------------------------------ */
+  AL.GUIDE = {
+    moderate: 20,        // 節度ある適度な飲酒：1日平均 純アルコール約20g
+    riskMale: 40,        // 生活習慣病のリスクを高める量（男性）40g/日以上
+    riskFemale: 20,      // 同（女性）20g/日以上
+    fattyLiver: 60,      // これを毎日続けると脂肪肝が進みやすいとされる目安
+    colonRisk: 20,       // 大腸がんは1日20g程度から発症リスク上昇が指摘される
+    kcalPerGram: 7.1,    // アルコール1gあたりのカロリー
+    diuresisMlPerGram: 10 // アルコール1gあたり おおよそ10mlの余分な尿
+  };
+
+  /* 危険度バンド（1日の純アルコール量 g） */
+  AL.BANDS = [
+    { max: 0,   key: 'zero',   label: '休肝日',       color: '#3ba676' },
+    { max: 20,  key: 'low',    label: '適量の範囲',   color: '#7cc06a' },
+    { max: 40,  key: 'mid',    label: 'やや多い',     color: '#e0b341' },
+    { max: 60,  key: 'high',   label: 'リスクを高める量', color: '#e07a3c' },
+    { max: 100, key: 'vhigh',  label: '肝臓に負担が大きい', color: '#d94a4a' },
+    { max: 1e9, key: 'danger', label: '危険域',       color: '#a02a58' }
+  ];
+
+  /* ------------------------------------------------------------
+     相談・緊急情報
+     ------------------------------------------------------------ */
+  AL.HELP = {
+    emergency: [
+      '揺すっても、大声で呼んでも起きない',
+      'いびきをかいて眠り込み、呼吸が浅い・不規則',
+      '呼吸が10秒に1回以下、または止まる',
+      '体が冷たい、顔が青白い・紫っぽい',
+      '吐いたものが口に残ったまま眠っている'
+    ],
+    emergencyAction: [
+      'ひとりにしない。目を離さない',
+      '吐いたもので窒息しないよう、必ず横向きに寝かせる',
+      '毛布などで保温する',
+      '「寝かせておけば醒める」は間違い。迷ったら119番',
+      '意識がはっきりしないときは、水も飲ませない'
+    ],
+    consult: [
+      { name: 'お住まいの都道府県・政令市の精神保健福祉センター', note: 'アルコールの相談窓口。無料・匿名でも相談できます' },
+      { name: '保健所', note: '本人だけでなく、家族からの相談も受け付けています' },
+      { name: '全日本断酒連盟 / AA（アルコホーリクス・アノニマス）', note: '同じ問題を持つ人の集まり。見学だけでも参加できます' },
+      { name: 'かかりつけ医・内科', note: 'まず血液検査（γ-GTP、AST/ALT）から。数字は嘘をつきません' }
+    ]
+  };
+
+  AL.DISCLAIMER =
+    'このアプリの数値は、一般に用いられている計算式にもとづく「目安」です。' +
+    'アルコールの分解速度や体への影響には、体質（とくにALDH2の働き）・体調・服薬・持病によって大きな個人差があります。' +
+    '医学的な診断や治療の代わりにはなりません。体調に不安があるときは、必ず医療機関に相談してください。';
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = AL;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+/* ============================================================
+   酔いログ / YOI-LOG   計算エンジン
+   純アルコール量・カロリー・分解時間・血中濃度・睡眠スコア
+   ============================================================ */
+(function (root) {
+  'use strict';
+
+  var AL = root.AL || (root.AL = {});
+  var C = AL.calc = {};
+
+  function find(list, id) {
+    for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
+    return null;
+  }
+  C.drink = function (id) { return find(AL.DRINKS, id); };
+  C.wari = function (id) { return find(AL.WARI, id); };
+  C.cocktail = function (id) { return find(AL.COCKTAILS, id); };
+
+  /* ------------------------------------------------------------
+     純アルコール量(g) = 量(ml) × 度数(%) / 100 × 0.8（アルコールの比重）
+
+     entry = {
+       typeId, abv, baseMl, wariId, wariMl, count, label
+     }
+     ・kind:'ready'  の場合 baseMl は「飲む量そのもの」
+     ・kind:'spirit' の場合 baseMl は「原液の量」（割り材はアルコールを含まない）
+     どちらも「アルコールを含む液体の量 × 度数」で計算できるので式は共通。
+     ------------------------------------------------------------ */
+  C.pureAlcohol = function (entry) {
+    var ml = Number(entry.baseMl) || 0;
+    var abv = Number(entry.abv) || 0;
+    var n = Number(entry.count) || 1;
+    return ml * (abv / 100) * 0.8 * n;
+  };
+
+  /* 1杯あたりのカロリー(kcal)。アルコール由来 + 酒の糖質 + 割り材 */
+  C.kcal = function (entry) {
+    var n = Number(entry.count) || 1;
+    var d = C.drink(entry.typeId);
+    var sugar100 = entry.sugarKcal100 != null ? entry.sugarKcal100 : (d ? d.sugarKcal100 : 0);
+    var alcKcal = C.pureAlcohol(entry) * AL.GUIDE.kcalPerGram;
+    var sugarKcal = (Number(entry.baseMl) || 0) * (sugar100 / 100) * n;
+    var mixKcal = 0;
+    if (entry.mixKcal != null) {
+      mixKcal = Number(entry.mixKcal) * n;              // カクテル・プリセット
+    } else {
+      var w = C.wari(entry.wariId);
+      if (w) mixKcal = (Number(entry.wariMl) || 0) * (w.kcal100 / 100) * n;
+    }
+    return alcKcal + sugarKcal + mixKcal;
+  };
+
+  /* 割り材の量。原液 × 比率 */
+  C.wariMlFor = function (baseMl, ratio) {
+    return Math.round((Number(baseMl) || 0) * (Number(ratio) || 0));
+  };
+
+  /* その日の合計 */
+  C.dayTotals = function (drinks) {
+    var t = { alcohol: 0, kcal: 0, volume: 0, cups: 0, absorbMax: 1 };
+    (drinks || []).forEach(function (e) {
+      var n = Number(e.count) || 1;
+      t.alcohol += C.pureAlcohol(e);
+      t.kcal += C.kcal(e);
+      t.volume += ((Number(e.baseMl) || 0) + (Number(e.wariMl) || 0)) * n;
+      t.cups += n;
+      var w = C.wari(e.wariId);
+      if (w && w.absorb > t.absorbMax) t.absorbMax = w.absorb;
+    });
+    t.alcohol = Math.round(t.alcohol * 10) / 10;
+    t.kcal = Math.round(t.kcal);
+    t.volume = Math.round(t.volume);
+    return t;
+  };
+
+  /* ------------------------------------------------------------
+     分解にかかる時間
+     1時間に分解できる純アルコール量 ≒ 体重(kg) × 0.1 g
+     ------------------------------------------------------------ */
+  C.metabolicRate = function (weightKg) {
+    return Math.max(3, (Number(weightKg) || 65) * 0.1);
+  };
+
+  C.hoursToSober = function (grams, weightKg) {
+    var r = C.metabolicRate(weightKg);
+    if (grams <= 0) return 0;
+    return grams / r + 0.5; // +0.5h は吸収にかかる時間の目安
+  };
+
+  /* 血中アルコール濃度（Widmark式）
+     BAC(‰ = mg/mL) = A(g) / (体重kg × r)     r: 男 0.68 / 女 0.55 */
+  C.bodyFactor = function (sex) { return sex === 'female' ? 0.55 : 0.68; };
+
+  C.peakBac = function (grams, weightKg, sex) {
+    var w = Number(weightKg) || 65;
+    if (grams <= 0) return 0;
+    return grams / (w * C.bodyFactor(sex));
+  };
+
+  /* 血中濃度が1時間に下がる幅。
+     分解速度（体重×0.1 g/時）を濃度に直したもので、一般に言われる約0.15‰/時と一致します。
+     「抜けきる時刻」と同じ式から出すことで、2つの表示がずれないようにしています。 */
+  C.bacDeclineRate = function (sex) { return 0.1 / C.bodyFactor(sex); };
+
+  C.bacAfter = function (grams, weightKg, sex, hours) {
+    var peak = C.peakBac(grams, weightKg, sex);
+    // 最初の0.5時間は吸収にあてる（hoursToSober と同じ扱い）
+    var elapsed = Math.max(0, (Number(hours) || 0) - 0.5);
+    return Math.max(0, peak - C.bacDeclineRate(sex) * elapsed);
+  };
+
+  /* 血中濃度から「酔いの段階」を返す */
+  C.drunkStage = function (bac) {
+    if (bac < 0.2) return { name: 'しらふに近い', desc: 'ほとんど影響のない範囲です。', level: 0 };
+    if (bac < 0.5) return { name: '爽快期', desc: '陽気になり、皮膚が赤くなる。判断力はもう落ち始めています。', level: 1 };
+    if (bac < 1.0) return { name: 'ほろ酔い期', desc: '手の動きが大ざっぱになり、抑制がゆるむ。理性をつかさどる前頭葉から麻痺していきます。', level: 2 };
+    if (bac < 1.5) return { name: '酩酊初期', desc: '気が大きくなり、立てばふらつく。小脳がやられています。', level: 3 };
+    if (bac < 2.5) return { name: '酩酊期', desc: '千鳥足、同じ話の繰り返し、吐き気。記憶が飛び始める領域です。', level: 4 };
+    if (bac < 3.5) return { name: '泥酔期', desc: 'まともに立てず、意識がはっきりしない。記憶はほぼ残りません。', level: 5 };
+    return { name: '昏睡期', desc: '揺すっても起きない。呼吸が抑制され、命に関わる状態です。ためらわず119番。', level: 6 };
+  };
+
+  /* 危険度バンド */
+  C.band = function (grams) {
+    for (var i = 0; i < AL.BANDS.length; i++) if (grams <= AL.BANDS[i].max) return AL.BANDS[i];
+    return AL.BANDS[AL.BANDS.length - 1];
+  };
+
+  /* ------------------------------------------------------------
+     ダメージスコア（翌朝の記録から 0〜100）
+     ------------------------------------------------------------ */
+  C.damageScore = function (damage) {
+    if (!damage) return null;
+    var sum = 0, n = 0;
+    AL.DAMAGE_ITEMS.forEach(function (it) {
+      var v = damage[it.id];
+      if (v != null) { sum += Number(v); n++; }
+    });
+    if (!n) return null;
+    var max = AL.DAMAGE_ITEMS.length * 3;
+    return Math.round((sum / max) * 100);
+  };
+
+  /* ------------------------------------------------------------
+     睡眠スコア（0〜100・高いほど良い）
+     sleep = { bed:'23:30', wake:'06:30', latency:30, awake:2,
+               refresh:1..5, toilet:1, worry:0..3, nightcap:bool }
+     ------------------------------------------------------------ */
+  C.sleepHours = function (sleep) {
+    if (!sleep || !sleep.bed || !sleep.wake) return null;
+    var b = C.hhmmToMin(sleep.bed), w = C.hhmmToMin(sleep.wake);
+    if (b == null || w == null) return null;
+    var diff = w - b;
+    if (diff <= 0) diff += 24 * 60;
+    return Math.round((diff / 60) * 10) / 10;
+  };
+
+  C.hhmmToMin = function (s) {
+    if (!s || typeof s !== 'string') return null;
+    var m = s.match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return null;
+    return Number(m[1]) * 60 + Number(m[2]);
+  };
+
+  C.sleepScore = function (sleep) {
+    if (!sleep) return null;
+    var has = sleep.refresh != null || sleep.latency != null || sleep.awake != null || (sleep.bed && sleep.wake);
+    if (!has) return null;
+
+    var score = 100;
+
+    // 睡眠時間：7時間前後を最良とし、離れるほど減点
+    var h = C.sleepHours(sleep);
+    if (h != null) {
+      var diff = Math.abs(h - 7);
+      score -= Math.min(30, diff * 8);
+    }
+    // 寝つき：30分を超えるぶんを減点
+    if (sleep.latency != null) {
+      score -= Math.min(15, Math.max(0, (Number(sleep.latency) - 15)) * 0.2);
+    }
+    // 中途覚醒：1回につき7点、最大25点
+    if (sleep.awake != null) score -= Math.min(25, Number(sleep.awake) * 7);
+    // 夜間のトイレ：1回につき4点
+    if (sleep.toilet != null) score -= Math.min(12, Number(sleep.toilet) * 4);
+    // 起きたときのスッキリ感（1〜5）：これが体感の主役なので重みを大きく
+    if (sleep.refresh != null) score -= (5 - Number(sleep.refresh)) * 7;
+
+    return Math.max(0, Math.min(100, Math.round(score)));
+  };
+
+  /* ------------------------------------------------------------
+     統計まわり
+     ------------------------------------------------------------ */
+  C.mean = function (arr) {
+    var v = arr.filter(function (x) { return typeof x === 'number' && !isNaN(x); });
+    if (!v.length) return null;
+    return v.reduce(function (a, b) { return a + b; }, 0) / v.length;
+  };
+
+  /* 単回帰 y = a + bx と相関係数 r */
+  C.regression = function (pairs) {
+    var pts = pairs.filter(function (p) {
+      return typeof p[0] === 'number' && typeof p[1] === 'number' && !isNaN(p[0]) && !isNaN(p[1]);
+    });
+    if (pts.length < 3) return null;
+    var n = pts.length;
+    var mx = C.mean(pts.map(function (p) { return p[0]; }));
+    var my = C.mean(pts.map(function (p) { return p[1]; }));
+    var sxy = 0, sxx = 0, syy = 0;
+    pts.forEach(function (p) {
+      var dx = p[0] - mx, dy = p[1] - my;
+      sxy += dx * dy; sxx += dx * dx; syy += dy * dy;
+    });
+    if (sxx === 0 || syy === 0) return null;
+    var b = sxy / sxx;
+    return { a: my - b * mx, b: b, r: sxy / Math.sqrt(sxx * syy), n: n, meanX: mx, meanY: my };
+  };
+
+  /* ------------------------------------------------------------
+     わかりやすい換算
+     ------------------------------------------------------------ */
+  C.equivalents = function (grams) {
+    return {
+      beer: grams / 20,                 // 中ジョッキ500ml(5%) = 20g
+      sake: grams / 21.6,               // 日本酒1合180ml(15%) = 21.6g
+      highball: grams / 14.4,           // ウイスキー45ml(40%) = 14.4g
+      strong: grams / 36,               // ストロング500ml(9%) = 36g
+      shochuBottle: grams / 180         // 焼酎900ml(25%) = 180g
+    };
+  };
+
+  /* カロリーの換算 */
+  C.kcalEquivalents = function (kcal) {
+    return {
+      rice: kcal / 234,        // ご飯茶碗1杯(150g) ≒ 234kcal
+      walkMin: kcal / 4,       // 体重70kgの人が歩いて消費するのは 約4kcal/分
+      bodyFatG: kcal / 7.2     // 体脂肪1g を増やすのに必要なのは 約7.2kcal
+    };
+  };
+
+  /* ------------------------------------------------------------
+     「今夜の見積り」：これから飲む量に対する体の反応
+     ------------------------------------------------------------ */
+  C.forecast = function (grams, profile, startHour) {
+    var w = (profile && profile.weight) || 70;
+    var sex = (profile && profile.sex) || 'male';
+    var hours = C.hoursToSober(grams, w);
+    var start = startHour != null ? startHour : 20;
+    var soberAt = (start + hours) % 24;
+
+    var eq = C.equivalents(grams);
+    var risk = sex === 'female' ? AL.GUIDE.riskFemale : AL.GUIDE.riskMale;
+
+    return {
+      grams: Math.round(grams * 10) / 10,
+      hours: Math.round(hours * 10) / 10,
+      soberAt: soberAt,
+      soberLabel: C.fmtHour(soberAt),
+      peakBac: Math.round(C.peakBac(grams, w, sex) * 100) / 100,
+      stage: C.drunkStage(C.peakBac(grams, w, sex)),
+      bacAt7: Math.round(C.bacAfter(grams, w, sex, ((7 + 24) - start) % 24) * 100) / 100,
+      water: Math.round(grams * AL.GUIDE.diuresisMlPerGram),
+      riskRatio: risk > 0 ? grams / risk : 0,
+      eq: eq,
+      band: C.band(grams)
+    };
+  };
+
+  C.fmtHour = function (h) {
+    var hh = Math.floor(h) % 24;
+    var mm = Math.round((h - Math.floor(h)) * 60);
+    if (mm === 60) { mm = 0; hh = (hh + 1) % 24; }
+    return ('0' + hh).slice(-2) + ':' + ('0' + mm).slice(-2);
+  };
+
+  /* ------------------------------------------------------------
+     日付ユーティリティ
+     ------------------------------------------------------------ */
+  C.ymd = function (d) {
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  };
+  C.parseYmd = function (s) {
+    var p = String(s).split('-');
+    return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+  };
+  C.addDays = function (s, n) {
+    var d = C.parseYmd(s);
+    d.setDate(d.getDate() + n);
+    return C.ymd(d);
+  };
+
+  /* 「その日」の区切りは朝5時。
+     深夜1時に飲んだ一杯は、カレンダー上は翌日でも「前の晩の酒」として数えます。
+     こうしないと、日付をまたいで飲む人の「その夜の酒」と「翌朝のからだ」がずれます。 */
+  C.DAY_START_HOUR = 5;
+
+  C.today = function () {
+    var d = new Date();
+    if (d.getHours() < C.DAY_START_HOUR) d.setDate(d.getDate() - 1);
+    return C.ymd(d);
+  };
+
+  /* いま深夜（0時〜5時）で、記録先が前日になっているか */
+  C.isLateNight = function () { return new Date().getHours() < C.DAY_START_HOUR; };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = AL;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+/* ============================================================
+   酔いログ / YOI-LOG   データ保存
+   すべて端末の localStorage に保存。外部には一切送信しません。
+   ============================================================ */
+(function (root) {
+  'use strict';
+
+  var AL = root.AL || (root.AL = {});
+  var KEY = 'yoilog.v1';
+
+  var defaults = {
+    profile: {
+      name: '',
+      age: 42,
+      sex: 'male',
+      weight: 74,
+      height: 172,
+      waist: 88,
+      priceGoal: 0
+    },
+    days: {},   // 'YYYY-MM-DD' -> { drinks:[], reasons:[], spend, memo, morning:{...} }
+    ui: { seenIntro: false }
+  };
+
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+  var Store = AL.store = {
+    data: clone(defaults),
+
+    load: function () {
+      try {
+        var raw = root.localStorage && root.localStorage.getItem(KEY);
+        if (raw) {
+          var parsed = JSON.parse(raw);
+          this.data = {
+            profile: Object.assign(clone(defaults.profile), parsed.profile || {}),
+            days: parsed.days || {},
+            ui: Object.assign(clone(defaults.ui), parsed.ui || {})
+          };
+        }
+      } catch (e) {
+        console.warn('保存データを読み込めませんでした', e);
+      }
+      return this.data;
+    },
+
+    save: function () {
+      try {
+        root.localStorage.setItem(KEY, JSON.stringify(this.data));
+      } catch (e) {
+        alert('保存できませんでした。端末の空き容量やブラウザの設定をご確認ください。');
+      }
+    },
+
+    /* 指定日のレコードを取得（無ければ空の型を返す） */
+    day: function (ymd, create) {
+      var d = this.data.days[ymd];
+      if (!d && create) {
+        d = this.data.days[ymd] = { drinks: [], reasons: [], spend: 0, memo: '', morning: null };
+      }
+      return d || { drinks: [], reasons: [], spend: 0, memo: '', morning: null };
+    },
+
+    setDay: function (ymd, patch) {
+      var d = this.day(ymd, true);
+      Object.assign(d, patch);
+      this.save();
+      return d;
+    },
+
+    /* 日付順に並べた配列（古い→新しい） */
+    sortedDates: function () {
+      return Object.keys(this.data.days).sort();
+    },
+
+    /* 直近 n 日分の日付（今日を含む・古い→新しい） */
+    recentDates: function (n, endYmd) {
+      var end = endYmd || AL.calc.today();
+      var out = [];
+      for (var i = n - 1; i >= 0; i--) out.push(AL.calc.addDays(end, -i));
+      return out;
+    },
+
+    exportJson: function () {
+      return JSON.stringify(this.data, null, 2);
+    },
+
+    importJson: function (text) {
+      var parsed = JSON.parse(text);
+      if (!parsed || typeof parsed !== 'object' || !parsed.days) {
+        throw new Error('酔いログのデータ形式ではありません');
+      }
+      this.data = {
+        profile: Object.assign(clone(defaults.profile), parsed.profile || {}),
+        days: parsed.days || {},
+        ui: Object.assign(clone(defaults.ui), parsed.ui || {})
+      };
+      this.save();
+      return this.data;
+    },
+
+    clearAll: function () {
+      this.data = clone(defaults);
+      this.save();
+    }
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = AL;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+/* ============================================================
+   酔いログ / YOI-LOG   分析エンジン
+   「酒を飲まないと眠れない」を、本人のデータで検証する
+   ============================================================ */
+(function (root) {
+  'use strict';
+
+  var AL = root.AL || (root.AL = {});
+  var C = AL.calc;
+  var S = AL.stats = {};
+
+  /* 指定期間の日付配列（古い→新しい） */
+  S.range = function (days, endYmd) {
+    var end = endYmd || C.today();
+    var out = [];
+    for (var i = days - 1; i >= 0; i--) out.push(C.addDays(end, -i));
+    return out;
+  };
+
+  /* ------------------------------------------------------------
+     1日分の要約
+     ------------------------------------------------------------ */
+  S.daySummary = function (ymd) {
+    var d = AL.store.day(ymd);
+    var t = C.dayTotals(d.drinks);
+    return {
+      date: ymd,
+      alcohol: t.alcohol,
+      kcal: t.kcal,
+      cups: t.cups,
+      spend: Number(d.spend) || 0,
+      hasRecord: S.hasContent(d),
+      drank: t.alcohol > 0,
+      reasons: d.reasons || [],
+      morning: d.morning || null,
+      sleepScore: d.morning ? C.sleepScore(d.morning.sleep) : null,
+      damageScore: d.morning ? C.damageScore(d.morning.damage) : null,
+      band: C.band(t.alcohol)
+    };
+  };
+
+  /* ------------------------------------------------------------
+     「前の晩の酒」と「翌朝の状態」を突き合わせたペア
+     morning は その日の朝の記録 ＝ 前日の夜の結果
+     ------------------------------------------------------------ */
+  S.pairs = function (days, endYmd) {
+    var dates = S.range(days, endYmd);
+    var out = [];
+    dates.forEach(function (ymd) {
+      var morningDay = AL.store.day(ymd);
+      if (S.isEmptyMorning(morningDay.morning)) return;
+      var prev = AL.store.day(C.addDays(ymd, -1));
+      var t = C.dayTotals(prev.drinks);
+      out.push({
+        date: ymd,
+        alcohol: t.alcohol,
+        drank: t.alcohol > 0,
+        nightcap: !!(morningDay.morning.sleep && morningDay.morning.sleep.nightcap),
+        sleep: morningDay.morning.sleep || {},
+        sleepScore: C.sleepScore(morningDay.morning.sleep),
+        damageScore: C.damageScore(morningDay.morning.damage),
+        hours: C.sleepHours(morningDay.morning.sleep)
+      });
+    });
+    return out;
+  };
+
+  function avg(arr, pick) {
+    var v = [];
+    arr.forEach(function (x) {
+      var n = pick(x);
+      if (typeof n === 'number' && !isNaN(n)) v.push(n);
+    });
+    if (!v.length) return null;
+    return v.reduce(function (a, b) { return a + b; }, 0) / v.length;
+  }
+  S.avg = avg;
+
+  /* ------------------------------------------------------------
+     核心の検証：飲んだ翌朝 vs 飲まなかった翌朝
+     ------------------------------------------------------------ */
+  S.drinkVsSober = function (days, endYmd) {
+    var p = S.pairs(days || 90, endYmd);
+    var drank = p.filter(function (x) { return x.drank; });
+    var sober = p.filter(function (x) { return !x.drank; });
+
+    function pack(list) {
+      return {
+        n: list.length,
+        sleepScore: avg(list, function (x) { return x.sleepScore; }),
+        hours: avg(list, function (x) { return x.hours; }),
+        latency: avg(list, function (x) { return x.sleep.latency; }),
+        awake: avg(list, function (x) { return x.sleep.awake; }),
+        refresh: avg(list, function (x) { return x.sleep.refresh; }),
+        toilet: avg(list, function (x) { return x.sleep.toilet; }),
+        damage: avg(list, function (x) { return x.damageScore; })
+      };
+    }
+    return { drank: pack(drank), sober: pack(sober), total: p.length };
+  };
+
+  /* 寝酒（寝るために飲んだ）の検証 */
+  S.nightcapCheck = function (days, endYmd) {
+    var p = S.pairs(days || 90, endYmd);
+    var yes = p.filter(function (x) { return x.nightcap; });
+    var no = p.filter(function (x) { return !x.nightcap; });
+    if (yes.length < 2) return null;
+    return {
+      n: yes.length,
+      latencyYes: avg(yes, function (x) { return x.sleep.latency; }),
+      latencyNo: avg(no, function (x) { return x.sleep.latency; }),
+      awakeYes: avg(yes, function (x) { return x.sleep.awake; }),
+      awakeNo: avg(no, function (x) { return x.sleep.awake; }),
+      refreshYes: avg(yes, function (x) { return x.sleep.refresh; }),
+      refreshNo: avg(no, function (x) { return x.sleep.refresh; }),
+      scoreYes: avg(yes, function (x) { return x.sleepScore; }),
+      scoreNo: avg(no, function (x) { return x.sleepScore; })
+    };
+  };
+
+  /* 飲酒量と睡眠スコアの相関 */
+  S.alcoholSleepCorrelation = function (days, endYmd) {
+    var p = S.pairs(days || 90, endYmd);
+    var pts = p.filter(function (x) { return x.sleepScore != null; })
+               .map(function (x) { return [x.alcohol, x.sleepScore]; });
+    var reg = C.regression(pts);
+    return { points: pts, reg: reg };
+  };
+
+  /* 飲酒量とダメージの相関 */
+  S.alcoholDamageCorrelation = function (days, endYmd) {
+    var p = S.pairs(days || 90, endYmd);
+    var pts = p.filter(function (x) { return x.damageScore != null; })
+               .map(function (x) { return [x.alcohol, x.damageScore]; });
+    return { points: pts, reg: C.regression(pts) };
+  };
+
+  /* ------------------------------------------------------------
+     期間サマリー
+     ------------------------------------------------------------ */
+  S.period = function (days, endYmd) {
+    var dates = S.range(days, endYmd);
+    var total = 0, kcal = 0, spend = 0, drinkDays = 0, restDays = 0, recorded = 0;
+    var overRisk = 0, maxDay = 0, maxDate = null;
+    var profile = AL.store.data.profile;
+    var risk = profile.sex === 'female' ? AL.GUIDE.riskFemale : AL.GUIDE.riskMale;
+
+    dates.forEach(function (ymd) {
+      var s = S.daySummary(ymd);
+      if (!s.hasRecord) return;
+      recorded++;
+      total += s.alcohol;
+      kcal += s.kcal;
+      spend += s.spend;
+      if (s.alcohol > 0) drinkDays++; else restDays++;
+      if (s.alcohol >= risk) overRisk++;
+      if (s.alcohol > maxDay) { maxDay = s.alcohol; maxDate = ymd; }
+    });
+
+    return {
+      days: days,
+      recorded: recorded,
+      totalAlcohol: Math.round(total * 10) / 10,
+      dailyAvg: recorded ? Math.round((total / recorded) * 10) / 10 : 0,
+      kcal: Math.round(kcal),
+      spend: Math.round(spend),
+      drinkDays: drinkDays,
+      restDays: restDays,
+      overRisk: overRisk,
+      maxDay: Math.round(maxDay * 10) / 10,
+      maxDate: maxDate,
+      riskLine: risk
+    };
+  };
+
+  /* 連続で飲んでいる日数（今日から遡る）
+     今日はまだ途中なので、今日がまだ0gでも連続は切らない。
+     （朝の記録だけ先に入れた日で連続が0に戻ってしまわないように） */
+  S.currentStreak = function (endYmd) {
+    var end = endYmd || C.today();
+    var n = 0;
+    for (var i = 0; i < 400; i++) {
+      var g = C.dayTotals(AL.store.day(C.addDays(end, -i)).drinks).alcohol;
+      if (i === 0 && g === 0) continue;
+      if (g > 0) n++; else break;
+    }
+    return n;
+  };
+
+  /* 最後の休肝日。今日はまだ終わっていないので数えない */
+  S.lastRestDay = function (endYmd) {
+    var end = endYmd || C.today();
+    for (var i = 1; i < 400; i++) {
+      var ymd = C.addDays(end, -i);
+      var d = AL.store.day(ymd);
+      if (!S.hasContent(d)) continue;
+      if (C.dayTotals(d.drinks).alcohol === 0) return { date: ymd, ago: i };
+    }
+    return null;
+  };
+
+  /* その日に「中身のある記録」があるか。
+     画面を開いただけでできた空っぽの記録を、休肝日として数えないための判定。 */
+  S.hasContent = function (d) {
+    if (!d) return false;
+    if (d.drinks && d.drinks.length) return true;
+    if (d.reasons && d.reasons.length) return true;
+    if (Number(d.spend) > 0 || d.memo) return true;
+    return !S.isEmptyMorning(d.morning);
+  };
+
+  S.isEmptyMorning = function (m) {
+    if (!m) return true;
+    var s = m.sleep || {};
+    if (s.bed || s.wake || s.worryNote || s.nightcap) return false;
+    if (s.latency != null || s.awake != null || s.refresh != null || s.toilet != null) return false;
+    if (Number(s.worry) > 0) return false;
+    if (m.memo) return false;
+    for (var k in (m.damage || {})) if (m.damage[k] != null) return false;
+    return true;
+  };
+
+  /* 月別の平均（耐性がついて量が増えていないか） */
+  S.monthlyTrend = function (months) {
+    var out = [];
+    var now = new Date();
+    for (var i = (months || 6) - 1; i >= 0; i--) {
+      var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      var key = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2);
+      var sum = 0, n = 0;
+      Object.keys(AL.store.data.days).forEach(function (ymd) {
+        if (ymd.indexOf(key) !== 0) return;
+        var day = AL.store.data.days[ymd];
+        if (!S.hasContent(day)) return;
+        sum += C.dayTotals(day.drinks).alcohol;
+        n++;
+      });
+      out.push({ key: key, label: (d.getMonth() + 1) + '月', avg: n ? sum / n : null, days: n });
+    }
+    return out;
+  };
+
+  /* ------------------------------------------------------------
+     気をつけたいサイン
+     責めるためではなく、早めに気づくためのチェック
+     ------------------------------------------------------------ */
+  S.warnings = function () {
+    var w = [];
+    var p90 = S.period(90);
+    var streak = S.currentStreak();
+    var pairs = S.pairs(90);
+
+    if (streak >= 14) {
+      w.push({ level: 'high', title: '休肝日が' + streak + '日ありません',
+        body: '肝臓の細胞が回復するには時間が必要です。まずは週に2日、続けて休む日をつくることが、量を減らすより先に効きます。' });
+    } else if (streak >= 7) {
+      w.push({ level: 'mid', title: streak + '日連続で飲んでいます',
+        body: '「毎日飲む」が習慣として固まると、飲まない日のほうが落ち着かなくなります。' });
+    }
+
+    if (p90.recorded >= 7 && p90.dailyAvg >= p90.riskLine) {
+      w.push({ level: 'high', title: '1日平均' + p90.dailyAvg + 'g（生活習慣病のリスクを高める量）',
+        body: '厚生労働省のガイドラインでは、生活習慣病のリスクを高める量は1日あたり純アルコール' + p90.riskLine + 'g以上とされています。' });
+    } else if (p90.recorded >= 7 && p90.dailyAvg >= AL.GUIDE.moderate) {
+      w.push({ level: 'mid', title: '1日平均' + p90.dailyAvg + 'g',
+        body: '「節度ある適度な飲酒」の目安は1日平均約20gです。今の量はそれを上回っています。' });
+    }
+
+    var nightcaps = pairs.filter(function (x) { return x.nightcap; }).length;
+    if (nightcaps >= 5) {
+      w.push({ level: 'high', title: '「寝るため」に飲んだ日が' + nightcaps + '日',
+        body: '寝酒は数週間で効かなくなり（耐性）、同じだけ眠るのに量が増えていきます。眠りの問題は、酒ではなく睡眠の相談として医師に話すのが近道です。' });
+    }
+
+    var blackouts = 0;
+    Object.keys(AL.store.data.days).forEach(function (ymd) {
+      var m = AL.store.data.days[ymd].morning;
+      if (m && m.damage && Number(m.damage.blackout) >= 2) blackouts++;
+    });
+    if (blackouts >= 3) {
+      w.push({ level: 'high', title: '記憶があいまいな朝が' + blackouts + '回',
+        body: 'いわゆるブラックアウトは、脳の海馬が記憶を書き込めなくなった状態です。回数が増えるほど、脳への影響が心配される段階に入ります。' });
+    }
+
+    var trend = S.monthlyTrend(4).filter(function (m) { return m.avg != null && m.days >= 5; });
+    if (trend.length >= 2) {
+      var first = trend[0].avg, last = trend[trend.length - 1].avg;
+      if (last > first * 1.25) {
+        w.push({ level: 'mid', title: '飲む量が増えてきています',
+          body: trend[0].label + 'は1日平均' + first.toFixed(1) + 'g、' + trend[trend.length - 1].label + 'は' + last.toFixed(1) + 'g。' +
+                '同じ酔いを得るのに量が増えるのは、体に耐性がついたサインです。' });
+      }
+    }
+
+    return w;
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = AL;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+/* ============================================================
+   酔いログ / YOI-LOG   からだ表現
+   ・主人公アバター（SVG）
+   ・体の中で今夜なにが起きるかのタイムライン
+   ============================================================ */
+(function (root) {
+  'use strict';
+
+  var AL = root.AL || (root.AL = {});
+  var C = AL.calc;
+  var B = AL.body = {};
+
+  /* ------------------------------------------------------------
+     お腹の出っぷり 0〜5
+     直近30日の平均純アルコール量と、酒由来のカロリーから決める
+     ------------------------------------------------------------ */
+  B.bellyLevel = function () {
+    var p = AL.stats.period(30);
+    if (!p.recorded) {
+      // 記録がないうちは、設定した腹囲から推定（40代前半・ちょっと出ている想定）
+      var waist = (AL.store.data.profile.waist || 88);
+      return Math.max(0, Math.min(5, (waist - 76) / 6));
+    }
+    var byAlcohol = p.dailyAvg / 20;                       // 20gごとに +1
+    var byKcal = (p.kcal / Math.max(1, p.recorded)) / 250; // 1日250kcalごとに +1
+    return Math.max(0.4, Math.min(5, byAlcohol * 0.6 + byKcal * 0.6));
+  };
+
+  /* 直近のダメージ（0〜100）。顔色と表情に使う */
+  B.recentDamage = function () {
+    var pairs = AL.stats.pairs(14);
+    var v = pairs.map(function (x) { return x.damageScore; }).filter(function (x) { return x != null; });
+    if (!v.length) return 0;
+    return v.slice(-5).reduce(function (a, b) { return a + b; }, 0) / Math.min(5, v.length);
+  };
+
+  /* ------------------------------------------------------------
+     アバター描画
+     opts = { belly, damage, organs:{brain,liver,heart,stomach,gut}, showOrgans, label }
+     ------------------------------------------------------------ */
+  B.avatar = function (opts) {
+    opts = opts || {};
+    var belly = opts.belly != null ? opts.belly : B.bellyLevel();
+    var damage = opts.damage != null ? opts.damage : B.recentDamage();
+    var organs = opts.organs || {};
+    var showOrgans = !!opts.showOrgans;
+
+    var sx = 40;                        // 肩幅の半分
+    var wx = 25 + belly * 6.6;          // 腹まわりの半分
+    var hx = 33;                        // 腰幅の半分
+
+    // 顔色：ダメージが強いほど 赤み → くすみ
+    var skin = damage > 60 ? '#c9a288' : damage > 30 ? '#dcae90' : '#e6b795';
+    var flush = Math.min(0.55, damage / 140 + belly / 22);
+
+    function torsoPath() {
+      return 'M ' + (100 - sx) + ',92' +
+        ' C ' + (100 - 30) + ',80 ' + (100 - 13) + ',79 ' + (100 - 11) + ',74' +
+        ' L ' + (100 + 11) + ',74' +
+        ' C ' + (100 + 13) + ',79 ' + (100 + 30) + ',80 ' + (100 + sx) + ',92' +
+        ' C ' + (100 + sx + 2) + ',120 ' + (100 + wx + 5) + ',148 ' + (100 + wx) + ',176' +
+        ' C ' + (100 + wx - 1) + ',196 ' + (100 + hx) + ',200 ' + (100 + hx) + ',212' +
+        ' L ' + (100 - hx) + ',212' +
+        ' C ' + (100 - hx) + ',200 ' + (100 - wx + 1) + ',196 ' + (100 - wx) + ',176' +
+        ' C ' + (100 - wx - 5) + ',148 ' + (100 - sx - 2) + ',120 ' + (100 - sx) + ',92 Z';
+    }
+
+    function face() {
+      var s = '';
+      // 眉
+      if (damage > 55) {
+        s += '<path d="M78,36 L90,41" stroke="#4a3728" stroke-width="2.6" stroke-linecap="round" fill="none"/>' +
+             '<path d="M122,36 L110,41" stroke="#4a3728" stroke-width="2.6" stroke-linecap="round" fill="none"/>';
+      } else if (damage > 25) {
+        s += '<path d="M79,38 L90,39" stroke="#4a3728" stroke-width="2.6" stroke-linecap="round" fill="none"/>' +
+             '<path d="M121,38 L110,39" stroke="#4a3728" stroke-width="2.6" stroke-linecap="round" fill="none"/>';
+      } else {
+        s += '<path d="M79,37 Q84.5,34 90,37" stroke="#4a3728" stroke-width="2.6" stroke-linecap="round" fill="none"/>' +
+             '<path d="M121,37 Q115.5,34 110,37" stroke="#4a3728" stroke-width="2.6" stroke-linecap="round" fill="none"/>';
+      }
+      // 目
+      if (damage > 70) {
+        s += '<path d="M81,45 L89,51 M89,45 L81,51" stroke="#3a2c22" stroke-width="2.2" stroke-linecap="round"/>' +
+             '<path d="M111,45 L119,51 M119,45 L111,51" stroke="#3a2c22" stroke-width="2.2" stroke-linecap="round"/>';
+      } else if (damage > 40) {
+        s += '<path d="M80,48 Q85,44 90,48" stroke="#3a2c22" stroke-width="2.2" fill="none" stroke-linecap="round"/>' +
+             '<path d="M110,48 Q115,44 120,48" stroke="#3a2c22" stroke-width="2.2" fill="none" stroke-linecap="round"/>';
+      } else {
+        s += '<ellipse cx="85" cy="47" rx="3.1" ry="3.4" fill="#3a2c22"/>' +
+             '<ellipse cx="115" cy="47" rx="3.1" ry="3.4" fill="#3a2c22"/>';
+      }
+      // 目の下のクマ
+      if (damage > 30) {
+        var op = Math.min(0.5, damage / 180);
+        s += '<path d="M79,53 Q85,57 91,53" stroke="#8a6a72" stroke-width="1.8" fill="none" opacity="' + op + '"/>' +
+             '<path d="M109,53 Q115,57 121,53" stroke="#8a6a72" stroke-width="1.8" fill="none" opacity="' + op + '"/>';
+      }
+      // 鼻
+      s += '<path d="M100,50 L100,57 Q102.5,58.5 104,57" stroke="#b98a6d" stroke-width="1.8" fill="none" stroke-linecap="round"/>';
+      // 口
+      if (damage > 55) s += '<path d="M91,64 Q100,58 109,64" stroke="#8c4a44" stroke-width="2.4" fill="none" stroke-linecap="round"/>';
+      else if (damage > 25) s += '<path d="M91,63 L109,63" stroke="#8c4a44" stroke-width="2.4" stroke-linecap="round"/>';
+      else s += '<path d="M91,61 Q100,67 109,61" stroke="#8c4a44" stroke-width="2.4" fill="none" stroke-linecap="round"/>';
+      // 赤ら顔
+      s += '<ellipse cx="79" cy="55" rx="8" ry="5" fill="#e06a5a" opacity="' + flush + '"/>' +
+           '<ellipse cx="121" cy="55" rx="8" ry="5" fill="#e06a5a" opacity="' + flush + '"/>';
+      // 無精ひげ（40代らしさ）
+      s += '<path d="M84,62 Q100,76 116,62 Q116,72 100,74 Q84,72 84,62 Z" fill="#5a4636" opacity="0.16"/>';
+      return s;
+    }
+
+    function organOverlay() {
+      if (!showOrgans) return '';
+      function glow(on) { return on ? '1' : '0.28'; }
+      var s = '<g class="organs">';
+      // 肝臓（正面から見て左側＝本人の右側）
+      s += '<path d="M' + (100 - wx * 0.82) + ',140 Q' + (100 - wx * 0.2) + ',132 ' + (100 + wx * 0.28) + ',144' +
+           ' Q' + (100 + wx * 0.1) + ',163 ' + (100 - wx * 0.5) + ',162' +
+           ' Q' + (100 - wx * 0.9) + ',158 ' + (100 - wx * 0.82) + ',140 Z"' +
+           ' fill="#9b3b2e" opacity="' + glow(organs.liver) + '" class="organ organ-liver"/>';
+      // 胃
+      s += '<path d="M' + (100 + wx * 0.15) + ',146 q14,-4 16,10 q2,14 -12,17 q-12,2 -12,-10 q0,-11 8,-17 z"' +
+           ' fill="#c46a5a" opacity="' + glow(organs.stomach) + '" class="organ organ-stomach"/>';
+      // 腸
+      s += '<ellipse cx="100" cy="188" rx="' + (wx * 0.75) + '" ry="13" fill="#b9705f" opacity="' + glow(organs.gut) + '" class="organ organ-gut"/>';
+      // 心臓
+      s += '<path d="M104,112 q6,-8 12,0 q6,9 -12,20 q-18,-11 -12,-20 q6,-8 12,0 z" fill="#d1453f" opacity="' + glow(organs.heart) + '" class="organ organ-heart"/>';
+      // 脳
+      s += '<ellipse cx="100" cy="40" rx="20" ry="16" fill="#c98aa8" opacity="' + glow(organs.brain) + '" class="organ organ-brain"/>';
+      s += '</g>';
+      return s;
+    }
+
+    var svg =
+      '<svg viewBox="0 0 200 320" class="avatar-svg" role="img" aria-label="主人公のからだ">' +
+      '<defs>' +
+        '<linearGradient id="shirt" x1="0" y1="0" x2="0" y2="1">' +
+          '<stop offset="0%" stop-color="#5c6f86"/><stop offset="100%" stop-color="#42536a"/>' +
+        '</linearGradient>' +
+      '</defs>' +
+      // 脚
+      '<path d="M' + (100 - hx + 3) + ',208 L' + (100 - 4) + ',208 L' + (100 - 6) + ',296 L' + (100 - hx + 5) + ',296 Z" fill="#3a4759"/>' +
+      '<path d="M' + (100 + 4) + ',208 L' + (100 + hx - 3) + ',208 L' + (100 + hx - 5) + ',296 L' + (100 + 6) + ',296 Z" fill="#3a4759"/>' +
+      '<rect x="' + (100 - hx + 2) + '" y="296" width="20" height="8" rx="4" fill="#26313f"/>' +
+      '<rect x="' + (100 + hx - 22) + '" y="296" width="20" height="8" rx="4" fill="#26313f"/>' +
+      // 腕
+      '<path d="M' + (100 - sx + 2) + ',96 Q' + (100 - sx - 10) + ',140 ' + (100 - wx - 6) + ',186" stroke="' + skin + '" stroke-width="13" fill="none" stroke-linecap="round"/>' +
+      '<path d="M' + (100 + sx - 2) + ',96 Q' + (100 + sx + 10) + ',140 ' + (100 + wx + 6) + ',186" stroke="' + skin + '" stroke-width="13" fill="none" stroke-linecap="round"/>' +
+      // 胴
+      '<path d="' + torsoPath() + '" fill="url(#shirt)"/>' +
+      // 内臓脂肪のふくらみ
+      '<ellipse cx="100" cy="170" rx="' + (wx * 0.78) + '" ry="' + (16 + belly * 2.4) + '" fill="#000" opacity="' + (0.05 + belly * 0.022) + '"/>' +
+      organOverlay() +
+      // 首
+      '<rect x="92" y="62" width="16" height="16" fill="' + skin + '"/>' +
+      // 頭
+      '<ellipse cx="100" cy="46" rx="24" ry="27" fill="' + skin + '"/>' +
+      // 髪（生え際は少し後退）
+      '<path d="M77,40 Q80,20 100,19 Q120,20 123,40 Q118,29 100,28 Q82,29 77,40 Z" fill="#3b2f27"/>' +
+      '<path d="M76,46 Q74,34 78,30 L79,44 Z" fill="#3b2f27"/>' +
+      '<path d="M124,46 Q126,34 122,30 L121,44 Z" fill="#3b2f27"/>' +
+      face() +
+      '</svg>';
+
+    return svg;
+  };
+
+  /* ------------------------------------------------------------
+     今夜これだけ飲んだら、体の中で何が起きるか
+     ------------------------------------------------------------ */
+  B.timeline = function (grams, profile, startHour) {
+    var f = C.forecast(grams, profile, startHour);
+    var w = (profile && profile.weight) || 70;
+    var rate = C.metabolicRate(w);
+    var start = startHour != null ? startHour : 20;
+    var out = [];
+
+    if (grams <= 0) {
+      out.push({
+        t: '今夜', organ: 'liver', level: 0, title: '肝臓が、ようやく本来の仕事に戻れます',
+        body: 'アルコールが入っていない夜、肝臓はアルコールの解毒を最優先する状態から解放され、' +
+              '脂肪やタンパク質の代謝、糖の貯蔵といった本来の仕事に戻ります。' +
+              '睡眠も、麻酔で落とされるのではなく、自分の力で深いノンレム睡眠に入っていきます。'
+      });
+      return { forecast: f, items: out };
+    }
+
+    out.push({
+      t: '飲み始めて 5〜10分', organ: 'stomach', level: 1,
+      title: '胃の粘膜が、直接アルコールに触れています',
+      body: '飲んだアルコールの約20%は胃から、残り約80%は小腸から吸収されます。' +
+            '胃の粘膜はアルコールに直接さらされ、荒れやすい状態になります。空腹で飲めば、これが数倍速く進みます。'
+    });
+
+    out.push({
+      t: '30分〜2時間後', organ: 'brain', level: 2,
+      title: '血中アルコール濃度が最高 ' + f.peakBac.toFixed(2) + ' ‰ ／「' + f.stage.name + '」',
+      body: f.stage.desc + ' 酔いは、脳が麻痺していく順番そのものです。' +
+            'まず理性をつかさどる前頭葉、次に運動を司る小脳、最後に呼吸を司る脳幹。' +
+            '「気持ちよく酔う」とは、脳の表面から順に麻酔がかかっていくということです。'
+    });
+
+    out.push({
+      t: '一晩じゅう', organ: 'liver', level: 3,
+      title: '肝臓が ' + f.hours.toFixed(1) + ' 時間、休みなく働きます',
+      body: '体重' + w + 'kgのあなたの肝臓が1時間に分解できる純アルコールは、およそ ' + rate.toFixed(1) + 'g。' +
+            '今夜の ' + f.grams + 'g を処理し終えるのは、' + f.soberLabel + 'ごろの見込みです。' +
+            (f.hours > 8 ? 'つまり、朝起きた時点でもまだ、体の中にアルコールが残っています。' : '')
+    });
+
+    out.push({
+      t: '分解の途中', organ: 'liver', level: 4,
+      title: f.grams + 'g のアルコールは、すべて一度「アセトアルデヒド」に変わります',
+      body: 'アルコールは、そのまま消えるのではありません。肝臓でまずアセトアルデヒドという物質に変えられます。' +
+            'これは顔を赤くし、頭痛と吐き気を起こす原因物質であり、国際がん研究機関（IARC）が' +
+            '「ヒトに対して発がん性がある（グループ1）」に分類している物質です。' +
+            '日本人の約4割は、これを分解する酵素（ALDH2）の働きが生まれつき弱く、体内にとどまる時間が長くなります。'
+    });
+
+    out.push({
+      t: '飲んでいる間ずっと', organ: 'body', level: 2,
+      title: '水がおよそ ' + f.water + 'ml、体から余分に抜けていきます',
+      body: 'アルコールは、腎臓に「水を再吸収しろ」と指示するホルモン（バソプレシン）を抑えます。' +
+            '結果、飲んだ量より多くの水分が尿として出ていきます。今夜の見込みはコップ約' +
+            Math.max(1, Math.round(f.water / 200)) + '杯分。' +
+            '朝の頭痛と口の渇きの正体の、かなりの部分がこれです。'
+    });
+
+    if (grams >= 15) {
+      out.push({
+        t: '寝ついた 3〜4時間後', organ: 'brain', level: 4,
+        title: '眠りが、いちばん深くなるはずの時間に分断されます',
+        body: 'アルコールは寝つきを早くします。ここは事実です。しかし前半でアルコールが分解され切ると、' +
+              '抑えられていたREM睡眠が後半に押し寄せ（反跳）、浅い眠りと中途覚醒が増えます。' +
+              '深いノンレム睡眠は減り、成長ホルモンの分泌も落ちます。' +
+              '「寝つきの良さ」と引き換えに、眠りの後半を丸ごと差し出しているのが寝酒です。'
+      });
+      out.push({
+        t: '深夜 2〜4時ごろ', organ: 'heart', level: 3,
+        title: '心拍が上がったまま、目が覚めます',
+        body: 'アルコールは交感神経を優位にし、安静時の心拍数を数〜十数拍/分ほど押し上げます。' +
+              '同時に利尿でトイレに起き、血糖も下がりやすい時間帯。' +
+              '動悸と不安で目が覚めるのは、意志の弱さではなく、体に起きている生理現象です。'
+      });
+    }
+
+    if (f.bacAt7 > 0.05) {
+      out.push({
+        t: '翌朝 7時の時点', organ: 'brain', level: 5,
+        title: 'まだ血液の中に ' + f.bacAt7.toFixed(2) + ' ‰ 残っています',
+        body: '眠っている間も、アルコールは決まった速さでしか分解されません。' +
+          (f.bacAt7 >= 0.3
+            ? 'この計算上の濃度は、呼気に換算すると酒気帯び運転の基準（呼気1Lあたり0.15mg）に達しうる水準です。朝の運転はやめてください。'
+            : '量としては多くありませんが、判断の速さや距離感は完全には戻っていません。') +
+          ' あくまで平均的な分解速度で計算した目安ですが、「ひと晩寝たから抜けた」は体の中では成り立ちません。'
+      });
+    }
+
+    if (grams >= 40) {
+      out.push({
+        t: '翌朝', organ: 'body', level: 5,
+        title: '二日酔いは、3つのダメージの合計です',
+        body: '① 残ったアセトアルデヒドの毒性 ② 脱水と電解質の乱れ ③ 分断された睡眠。' +
+              'この3つが重なって、頭痛・吐き気・だるさになります。' +
+              '「迎え酒」はアセトアルデヒドの生成を先送りするだけで、①を悪化させます。'
+      });
+    }
+
+    if (grams >= 60) {
+      out.push({
+        t: 'これが続くと', organ: 'liver', level: 5,
+        title: '1日60g以上を続けると、数週間で脂肪肝が進みます',
+        body: '肝臓はアルコールの解毒を最優先するため、脂肪の代謝が後回しになり、肝細胞に中性脂肪がたまります。' +
+              '脂肪肝そのものに自覚症状はほとんどありません。気づくのは、健康診断のγ-GTPやALTの数字か、' +
+              'さらに進んで肝炎・肝硬変になってからです。'
+      });
+    }
+
+    if (f.eq) {
+      out.push({
+        t: '体重計の上で', organ: 'body', level: 2,
+        title: '純アルコール ' + f.grams + 'g だけで ' + Math.round(f.grams * AL.GUIDE.kcalPerGram) + 'kcal',
+        body: 'アルコールは1gあたり7.1kcal。糖質やタンパク質のほぼ2倍です。' +
+              'しかも体はこのカロリーを最優先で燃やすため、そのぶん脂肪が後回しになって蓄えられます。' +
+              'つまみのカロリーは、この上に乗ります。'
+      });
+    }
+
+    return { forecast: f, items: out };
+  };
+
+  /* 体の中の位置ラベル */
+  B.organLabel = {
+    brain: '脳', liver: '肝臓', heart: '心臓', stomach: '胃', gut: '腸', body: '全身'
+  };
+  B.organEmoji = {
+    brain: '🧠', liver: '🫀', heart: '💓', stomach: '🫃', gut: '🌀', body: '🧍'
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = AL;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+/* ============================================================
+   酔いログ / YOI-LOG   グラフ（外部ライブラリなしの手描きSVG）
+   ============================================================ */
+(function (root) {
+  'use strict';
+
+  var AL = root.AL || (root.AL = {});
+  var G = AL.charts = {};
+
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  G.esc = esc;
+
+  /* ------------------------------------------------------------
+     日別の純アルコール量（棒グラフ）＋ 基準線
+     data: [{date, alcohol, color}]
+     ------------------------------------------------------------ */
+  G.dailyBars = function (data, opts) {
+    opts = opts || {};
+    var W = 720, H = 220, padL = 34, padR = 10, padT = 14, padB = 26;
+    var n = data.length || 1;
+    // 目盛りがきれいに割り切れるよう 20g 刻みで上限を決める
+    var maxV = Math.max(40, Math.ceil(Math.max.apply(null, data.map(function (d) { return d.alcohol; }).concat([0])) / 20) * 20);
+    var iw = W - padL - padR, ih = H - padT - padB;
+    var bw = iw / n;
+
+    var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="chart" preserveAspectRatio="none">';
+
+    // 目盛り
+    [0, 0.25, 0.5, 0.75, 1].forEach(function (r) {
+      var y = padT + ih * (1 - r);
+      s += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="rgba(255,255,255,.07)"/>';
+      s += '<text x="' + (padL - 6) + '" y="' + (y + 4) + '" class="ctick" text-anchor="end">' + Math.round(maxV * r) + '</text>';
+    });
+
+    // 基準線（適量20g / リスク40g）
+    [{ v: AL.GUIDE.moderate, c: '#7cc06a', t: '適量 20g' },
+     { v: opts.riskLine || AL.GUIDE.riskMale, c: '#e07a3c', t: 'リスク ' + (opts.riskLine || AL.GUIDE.riskMale) + 'g' }]
+      .forEach(function (l) {
+        if (l.v > maxV) return;
+        var y = padT + ih * (1 - l.v / maxV);
+        s += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="' + l.c + '" stroke-dasharray="5 4" stroke-width="1.4" opacity=".8"/>';
+        s += '<text x="' + (W - padR - 3) + '" y="' + (y - 5) + '" class="clabel" text-anchor="end" fill="' + l.c + '">' + l.t + '</text>';
+      });
+
+    data.forEach(function (d, i) {
+      var h = maxV ? (d.alcohol / maxV) * ih : 0;
+      var x = padL + i * bw + bw * 0.16;
+      var w = Math.max(1.5, bw * 0.68);
+      var y = padT + ih - h;
+      if (d.alcohol > 0) {
+        s += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + Math.max(1.5, h) + '" rx="1.5" fill="' + d.color + '">' +
+             '<title>' + esc(d.date) + '：' + d.alcohol + 'g</title></rect>';
+      } else {
+        s += '<rect x="' + x + '" y="' + (padT + ih - 3) + '" width="' + w + '" height="3" rx="1.5" fill="#3ba676" opacity=".9">' +
+             '<title>' + esc(d.date) + '：休肝日</title></rect>';
+      }
+    });
+
+    s += '<line x1="' + padL + '" y1="' + (padT + ih) + '" x2="' + (W - padR) + '" y2="' + (padT + ih) + '" stroke="rgba(255,255,255,.25)"/>';
+    s += '</svg>';
+    return s;
+  };
+
+  /* ------------------------------------------------------------
+     散布図＋回帰直線
+     ------------------------------------------------------------ */
+  G.scatter = function (points, reg, opts) {
+    opts = opts || {};
+    var W = 720, H = 300, padL = 44, padR = 16, padT = 16, padB = 40;
+    var iw = W - padL - padR, ih = H - padT - padB;
+    var maxX = Math.max(40, Math.ceil(Math.max.apply(null, points.map(function (p) { return p[0]; }).concat([0])) / 10) * 10);
+    var maxY = opts.maxY || 100;
+
+    function px(x) { return padL + (x / maxX) * iw; }
+    function py(y) { return padT + ih * (1 - y / maxY); }
+
+    var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="chart">';
+    [0, 0.25, 0.5, 0.75, 1].forEach(function (r) {
+      var y = padT + ih * (1 - r);
+      s += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="rgba(255,255,255,.07)"/>';
+      s += '<text x="' + (padL - 8) + '" y="' + (y + 4) + '" class="ctick" text-anchor="end">' + Math.round(maxY * r) + '</text>';
+    });
+    for (var gx = 0; gx <= maxX; gx += Math.max(10, Math.round(maxX / 6 / 10) * 10)) {
+      s += '<line x1="' + px(gx) + '" y1="' + padT + '" x2="' + px(gx) + '" y2="' + (padT + ih) + '" stroke="rgba(255,255,255,.05)"/>';
+      s += '<text x="' + px(gx) + '" y="' + (padT + ih + 16) + '" class="ctick" text-anchor="middle">' + gx + '</text>';
+    }
+
+    if (reg) {
+      var x1 = 0, x2 = maxX;
+      var y1 = Math.max(0, Math.min(maxY, reg.a + reg.b * x1));
+      var y2 = Math.max(0, Math.min(maxY, reg.a + reg.b * x2));
+      s += '<line x1="' + px(x1) + '" y1="' + py(y1) + '" x2="' + px(x2) + '" y2="' + py(y2) +
+           '" stroke="' + (opts.lineColor || '#e0b341') + '" stroke-width="2.4" stroke-linecap="round" opacity=".9"/>';
+    }
+
+    points.forEach(function (p) {
+      s += '<circle cx="' + px(p[0]) + '" cy="' + py(p[1]) + '" r="5" fill="' + (opts.dotColor || '#6fb3e0') + '" opacity=".78"/>';
+    });
+
+    s += '<text x="' + (padL + iw / 2) + '" y="' + (H - 6) + '" class="clabel" text-anchor="middle">' + esc(opts.xLabel || '前の晩の純アルコール量 (g)') + '</text>';
+    s += '<text x="12" y="' + (padT + ih / 2) + '" class="clabel" text-anchor="middle" transform="rotate(-90 12 ' + (padT + ih / 2) + ')">' + esc(opts.yLabel || '睡眠スコア') + '</text>';
+    s += '</svg>';
+    return s;
+  };
+
+  /* ------------------------------------------------------------
+     2本比較バー（飲んだ翌朝 vs 飲まなかった翌朝）
+     items: [{label, value, color, sub}]
+     ------------------------------------------------------------ */
+  G.compareBars = function (items, max, unit) {
+    var s = '<div class="cmp">';
+    items.forEach(function (it) {
+      var pct = max > 0 ? Math.max(2, Math.min(100, (it.value / max) * 100)) : 2;
+      s += '<div class="cmp-row">' +
+             '<div class="cmp-label">' + esc(it.label) + '</div>' +
+             '<div class="cmp-track"><div class="cmp-fill" style="width:' + pct + '%;background:' + it.color + '"></div></div>' +
+             '<div class="cmp-value">' + (it.value == null ? '—' : (Math.round(it.value * 10) / 10) + (unit || '')) + '</div>' +
+           '</div>';
+      if (it.sub) s += '<div class="cmp-sub">' + esc(it.sub) + '</div>';
+    });
+    s += '</div>';
+    return s;
+  };
+
+  /* 月別トレンドの折れ線 */
+  G.trendLine = function (months) {
+    var W = 720, H = 180, padL = 40, padR = 14, padT = 14, padB = 28;
+    var iw = W - padL - padR, ih = H - padT - padB;
+    var vals = months.map(function (m) { return m.avg || 0; });
+    var maxV = Math.max(30, Math.ceil(Math.max.apply(null, vals.concat([0])) / 10) * 10);
+    var n = months.length;
+    function px(i) { return padL + (n <= 1 ? iw / 2 : (i / (n - 1)) * iw); }
+    function py(v) { return padT + ih * (1 - v / maxV); }
+
+    var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="chart">';
+    [0, 0.5, 1].forEach(function (r) {
+      var y = padT + ih * (1 - r);
+      s += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="rgba(255,255,255,.07)"/>';
+      s += '<text x="' + (padL - 6) + '" y="' + (y + 4) + '" class="ctick" text-anchor="end">' + Math.round(maxV * r) + '</text>';
+    });
+    var d = '';
+    months.forEach(function (m, i) {
+      if (m.avg == null) return;
+      d += (d ? ' L' : 'M') + px(i) + ',' + py(m.avg);
+    });
+    if (d) s += '<path d="' + d + '" fill="none" stroke="#e0b341" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>';
+    months.forEach(function (m, i) {
+      if (m.avg != null) {
+        s += '<circle cx="' + px(i) + '" cy="' + py(m.avg) + '" r="4.5" fill="#e0b341"/>';
+        s += '<text x="' + px(i) + '" y="' + (py(m.avg) - 10) + '" class="ctick" text-anchor="middle">' + m.avg.toFixed(0) + 'g</text>';
+      }
+      s += '<text x="' + px(i) + '" y="' + (padT + ih + 18) + '" class="ctick" text-anchor="middle">' + esc(m.label) + '</text>';
+    });
+    s += '</svg>';
+    return s;
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = AL;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+/* ============================================================
+   酔いログ / YOI-LOG   画面
+   ============================================================ */
+(function (root) {
+  'use strict';
+
+  var AL = root.AL;
+  var C = AL.calc, S = AL.stats, B = AL.body, G = AL.charts, Store = AL.store;
+  var esc = G.esc;
+
+  var app = document.getElementById('app');
+  var sheetHost = document.getElementById('sheet-host');
+
+  var state = {
+    view: 'home',
+    calYear: new Date().getFullYear(),
+    calMonth: new Date().getMonth(),
+    editDate: null,
+    editTab: 'drink',
+    builder: null,
+    showOrgans: true
+  };
+
+  /* ============================================================
+     共通の部品
+     ============================================================ */
+  function bandBadge(g) {
+    var b = C.band(g);
+    return '<span class="badge" style="background:' + b.color + '22;color:' + b.color + '">' + b.label + '</span>';
+  }
+
+  function fmt(n, d) {
+    if (n == null || isNaN(n)) return '—';
+    var p = Math.pow(10, d || 0);
+    return String(Math.round(n * p) / p);
+  }
+
+  function jpDate(ymd) {
+    var d = C.parseYmd(ymd);
+    var dow = ['日', '月', '火', '水', '木', '金', '土'][d.getDay()];
+    return (d.getMonth() + 1) + '月' + d.getDate() + '日(' + dow + ')';
+  }
+
+  function profile() { return Store.data.profile; }
+
+  function riskLine() {
+    return profile().sex === 'female' ? AL.GUIDE.riskFemale : AL.GUIDE.riskMale;
+  }
+
+  /* ============================================================
+     ホーム
+     ============================================================ */
+  function viewHome() {
+    var today = C.today();
+    var day = Store.day(today);
+    var t = C.dayTotals(day.drinks);
+    var f = C.forecast(t.alcohol, profile(), profile().drinkStart || 20);
+    var streak = S.currentStreak();
+    var rest = S.lastRestDay();
+    var p30 = S.period(30);
+    var damage = B.recentDamage();
+
+    var h = '';
+
+    if (C.isLateNight()) {
+      h += '<div class="verdict" style="margin-top:14px"><b>🌙 いまは深夜です</b>' +
+        '日付が変わってからの一杯も「その晩の酒」として数え、これから迎える朝と突き合わせます。' +
+        'いまの記録先は <b>' + jpDate(today) + ' の夜</b>です。</div>';
+    }
+
+    /* --- 今日の数字 --- */
+    h += '<div class="card hero">';
+    h += '<div class="dim">' + jpDate(today) + ' の純アルコール量</div>';
+    h += '<div class="big" style="color:' + f.band.color + '">' + fmt(t.alcohol, 1) + '<small>g</small></div>';
+    h += '<div style="margin-top:6px">' + bandBadge(t.alcohol) + '</div>';
+
+    if (t.alcohol > 0) {
+      h += '<div class="kpis">' +
+        '<div class="kpi"><div class="v">' + fmt(f.hours, 1) + '<small style="font-size:11px">時間</small></div><div class="l">肝臓が働く時間</div></div>' +
+        '<div class="kpi"><div class="v">' + f.soberLabel + '</div><div class="l">抜けきる目安</div></div>' +
+        '<div class="kpi"><div class="v">' + fmt(t.kcal) + '<small style="font-size:11px">kcal</small></div><div class="l">お酒だけで</div></div>' +
+        '</div>';
+      h += '<p class="small muted" style="margin-top:10px">' +
+        '中ジョッキ換算 <b>' + fmt(f.eq.beer, 1) + '杯</b>ぶん。' +
+        '体から余分に出ていく水分は約 <b>' + f.water + 'ml</b>。</p>';
+    } else {
+      h += '<p class="small muted" style="margin-top:8px">まだ記録がありません。飲んだら下のボタンから足していってください。' +
+           'このまま0gで一日を終えれば、それが休肝日です。</p>';
+    }
+    h += '<div class="btn-row" style="margin-top:12px">' +
+      '<button class="btn primary" data-act="open-day" data-date="' + today + '" data-tab="drink">🍶 今夜の分を記録</button>' +
+      '<button class="btn" data-act="open-day" data-date="' + today + '" data-tab="morning">🌅 今朝のからだ</button>' +
+      '</div>';
+    h += '</div>';
+
+    /* --- 主人公 --- */
+    var belly = B.bellyLevel();
+    h += '<div class="card"><div class="avatar-wrap">';
+    h += B.avatar({ belly: belly, damage: damage, showOrgans: false });
+    h += '<div class="avatar-note">';
+    h += '<b>' + esc(profile().name || 'あなた') + '</b>' +
+         '<span class="dim"> ' + (profile().age || '') + '歳・' + (profile().weight || '') + 'kg</span>';
+    h += '<div class="dim" style="margin-top:8px">お腹まわりの目安</div>';
+    h += '<div class="belly-meter"><i style="width:' + Math.round(belly / 5 * 100) + '%"></i></div>';
+    h += '<p class="small muted" style="margin-top:8px">' + bellyComment(belly) + '</p>';
+    if (damage > 0) {
+      h += '<p class="small dim">直近のダメージ平均 ' + fmt(damage) + ' / 100</p>';
+    }
+    h += '</div></div></div>';
+
+    /* --- 連続日数 --- */
+    h += '<div class="card flat">';
+    h += '<div class="kpis">' +
+      '<div class="kpi"><div class="v" style="color:' + (streak >= 7 ? 'var(--red)' : 'var(--text)') + '">' + streak + '</div><div class="l">連続で飲んだ日数</div></div>' +
+      '<div class="kpi"><div class="v">' + (rest ? rest.ago + '日前' : '—') + '</div><div class="l">最後の休肝日</div></div>' +
+      '<div class="kpi"><div class="v">' + p30.restDays + '</div><div class="l">30日間の休肝日</div></div>' +
+      '</div>';
+    if (p30.recorded >= 5) {
+      h += '<p class="small muted" style="margin-top:10px">この30日の1日平均は <b style="color:' +
+        C.band(p30.dailyAvg).color + '">' + fmt(p30.dailyAvg, 1) + 'g</b>。' +
+        '（適量の目安 20g／リスクが高まる量 ' + riskLine() + 'g）</p>';
+    }
+    h += '</div>';
+
+    /* --- 今夜これから体で起きること --- */
+    if (t.alcohol > 0) {
+      var tl = B.timeline(t.alcohol, profile(), profile().drinkStart || 20);
+      h += '<div class="section-title">今夜、からだの中で起きること</div>';
+      h += '<div class="card"><div class="tl">';
+      tl.items.slice(0, 4).forEach(function (it) {
+        h += tlItem(it);
+      });
+      h += '</div>';
+      h += '<button class="btn block ghost sm" data-act="go" data-view="body">続きを全部みる →</button>';
+      h += '</div>';
+    }
+
+    /* --- 気をつけたいサイン --- */
+    var warns = S.warnings();
+    if (warns.length) {
+      h += '<div class="section-title">気をつけたいサイン</div>';
+      warns.forEach(function (w) {
+        h += '<div class="warn ' + (w.level === 'high' ? 'high' : '') + '"><b>' + esc(w.title) + '</b><p>' + esc(w.body) + '</p></div>';
+      });
+    }
+
+    h += footer();
+    app.innerHTML = h;
+  }
+
+  function bellyComment(b) {
+    if (b < 1) return 'いまのところ、腹まわりに酒のカロリーは積み上がっていません。';
+    if (b < 2) return '少しずつ内臓脂肪が乗り始める段階。まだ簡単に戻せます。';
+    if (b < 3) return 'お腹が前に出てきています。内臓脂肪は皮下脂肪と違い、肝臓に直接つながる場所につきます。';
+    if (b < 4) return '腹まわりの脂肪が肝臓を圧迫する段階。アルコール＋内臓脂肪は、脂肪肝の二重の原因になります。';
+    return 'かなり出ています。ここまで来ると血圧・血糖・尿酸も一緒に上がっていることが多い。健診の数字を一度見てください。';
+  }
+
+  function tlItem(it) {
+    return '<div class="tl-item lv' + it.level + '">' +
+      '<div class="tl-t">' + esc(it.t) + ' <span class="tl-organ">' + (B.organEmoji[it.organ] || '') + ' ' + (B.organLabel[it.organ] || '') + '</span></div>' +
+      '<div class="tl-h">' + esc(it.title) + '</div>' +
+      '<div class="tl-b">' + esc(it.body) + '</div>' +
+      '</div>';
+  }
+
+  /* ============================================================
+     カレンダー
+     ============================================================ */
+  function viewCalendar() {
+    var y = state.calYear, m = state.calMonth;
+    var first = new Date(y, m, 1);
+    var days = new Date(y, m + 1, 0).getDate();
+    var lead = first.getDay();
+    var today = C.today();
+
+    var h = '';
+    h += '<div class="card">';
+    h += '<div class="cal-head">' +
+      '<button class="btn sm ghost" data-act="cal" data-d="-1">‹ 前月</button>' +
+      '<div class="cal-title">' + y + '年 ' + (m + 1) + '月</div>' +
+      '<button class="btn sm ghost" data-act="cal" data-d="1">翌月 ›</button>' +
+      '</div>';
+
+    h += '<div class="cal-grid">';
+    ['日', '月', '火', '水', '木', '金', '土'].forEach(function (d, i) {
+      h += '<div class="cal-dow ' + (i === 0 ? 'sun' : i === 6 ? 'sat' : '') + '">' + d + '</div>';
+    });
+    for (var i = 0; i < lead; i++) h += '<div class="cal-cell empty"></div>';
+
+    var monthTotal = 0, monthDrink = 0, monthRest = 0;
+    for (var d = 1; d <= days; d++) {
+      var ymd = y + '-' + ('0' + (m + 1)).slice(-2) + '-' + ('0' + d).slice(-2);
+      var s = S.daySummary(ymd);
+      var cls = 'cal-cell' + (ymd === today ? ' today' : '');
+      var mark = '';
+      if (s.morning) {
+        var ds = s.damageScore;
+        mark = ds == null ? '·' : ds >= 45 ? '😖' : ds >= 20 ? '😕' : '🙂';
+      }
+      if (s.hasRecord) {
+        monthTotal += s.alcohol;
+        if (s.alcohol > 0) monthDrink++; else monthRest++;
+      }
+      h += '<div class="' + cls + '" data-act="open-day" data-date="' + ymd + '">' +
+        '<div class="d">' + d + '</div>' +
+        '<div class="mk">' + mark + '</div>' +
+        '<div class="g" style="color:' + (s.alcohol > 0 ? s.band.color : 'var(--dim)') + '">' +
+          (s.hasRecord ? (s.alcohol > 0 ? fmt(s.alcohol, 0) : '休') : '') + '</div>' +
+        (s.alcohol > 0 ? '<div class="bar" style="background:' + s.band.color + '"></div>' : '') +
+        '</div>';
+    }
+    h += '</div>';
+
+    h += '<div class="cal-legend">';
+    h += '<span><i style="background:#3ba676"></i>休（休肝日）</span>';
+    var lo = 0;
+    AL.BANDS.forEach(function (b) {
+      if (b.key === 'zero') return;
+      var span = b.max > 1000 ? (lo + 'g〜') : (lo + '〜' + b.max + 'g');
+      lo = b.max;
+      h += '<span><i style="background:' + b.color + '"></i>' + b.label + '（' + span + '）</span>';
+    });
+    h += '<span>🙂😕😖 翌朝のダメージ</span>';
+    h += '</div>';
+    h += '</div>';
+
+    h += '<div class="card flat"><h2>' + (m + 1) + '月のまとめ</h2>';
+    h += '<div class="kpis">' +
+      '<div class="kpi"><div class="v">' + fmt(monthTotal, 0) + '<small style="font-size:11px">g</small></div><div class="l">純アルコール合計</div></div>' +
+      '<div class="kpi"><div class="v">' + monthDrink + '</div><div class="l">飲んだ日</div></div>' +
+      '<div class="kpi"><div class="v" style="color:var(--green)">' + monthRest + '</div><div class="l">休肝日</div></div>' +
+      '</div>';
+    if (monthTotal > 0) {
+      var eq = C.equivalents(monthTotal);
+      h += '<p class="small muted" style="margin-top:10px">この月に体を通ったアルコールは、' +
+        '中ジョッキ <b>' + fmt(eq.beer, 0) + '杯</b>／日本酒 <b>' + fmt(eq.sake, 0) + '合</b>／' +
+        '焼酎（25度）ボトル <b>' + fmt(eq.shochuBottle, 1) + '本</b>ぶんに相当します。</p>';
+    }
+    h += '</div>';
+
+    h += '<p class="dim center small">日付をタップすると、その日のお酒と翌朝のからだを記録できます。</p>';
+    h += footer();
+    app.innerHTML = h;
+  }
+
+  /* ============================================================
+     からだ
+     ============================================================ */
+  function viewBody() {
+    var today = C.today();
+    var day = Store.day(today);
+    var t = C.dayTotals(day.drinks);
+    var tl = B.timeline(t.alcohol, profile(), profile().drinkStart || 20);
+    var damage = B.recentDamage();
+    var belly = B.bellyLevel();
+
+    // どの臓器が今いちばん負担を受けているか
+    var organs = { liver: t.alcohol > 0, stomach: t.alcohol > 0, brain: t.alcohol >= 15, heart: t.alcohol >= 30, gut: t.alcohol >= 40 };
+
+    var h = '';
+    h += '<div class="card">';
+    h += '<div class="avatar-wrap">';
+    h += B.avatar({ belly: belly, damage: damage, showOrgans: true, organs: organs });
+    h += '<div class="avatar-note">';
+    h += '<b>今夜、負担がかかっている場所</b>';
+    h += '<ul style="margin:8px 0 0;padding-left:18px;font-size:13px">';
+    if (t.alcohol <= 0) {
+      h += '<li class="muted">今日はまだアルコールが入っていません。臓器は通常運転です。</li>';
+    } else {
+      h += '<li>🫀 <b>肝臓</b> ' + fmt(tl.forecast.hours, 1) + '時間の残業</li>';
+      h += '<li>🫃 <b>胃</b> 粘膜が直接アルコールに接触</li>';
+      if (organs.brain) h += '<li>🧠 <b>脳</b> 前頭葉から順に麻痺／眠りが分断</li>';
+      if (organs.heart) h += '<li>💓 <b>心臓</b> 心拍が上がったまま就寝</li>';
+      if (organs.gut) h += '<li>🌀 <b>腸</b> 水分吸収が乱れる</li>';
+    }
+    h += '</ul></div></div>';
+    h += '<p class="small dim" style="margin-top:10px">色が濃い臓器ほど、今夜の量で負担が大きい場所です。</p>';
+    h += '</div>';
+
+    h += '<div class="section-title">今夜のからだの中・時間割</div>';
+    h += '<div class="card"><div class="tl">';
+    tl.items.forEach(function (it) { h += tlItem(it); });
+    h += '</div></div>';
+
+    /* 累積 */
+    var p30 = S.period(30), p365 = S.period(365);
+    if (p30.recorded > 0) {
+      var eq30 = C.equivalents(p30.totalAlcohol);
+      var ke = C.kcalEquivalents(p30.kcal);
+      h += '<div class="section-title">この30日で、体を通った量</div>';
+      h += '<div class="card">';
+      h += '<div class="big" style="font-size:34px;color:var(--amber)">' + fmt(p30.totalAlcohol, 0) + '<small>g</small></div>';
+      h += '<p class="small muted">中ジョッキ <b>' + fmt(eq30.beer, 0) + '杯</b>／' +
+           '焼酎（25度）900mlボトル <b>' + fmt(eq30.shochuBottle, 1) + '本</b>／' +
+           'ストロング缶500ml <b>' + fmt(eq30.strong, 0) + '本</b>ぶん。</p>';
+      h += '<hr class="sep">';
+      h += '<p class="small">お酒から取ったカロリーは <b>' + fmt(p30.kcal) + ' kcal</b>。' +
+           'ご飯茶碗 <b>' + fmt(ke.rice, 0) + '杯</b>ぶんで、歩いて消費するには <b>' + fmt(ke.walkMin / 60, 1) + '時間</b>かかります。' +
+           'すべて脂肪に回ったと仮定すると <b>約' + fmt(ke.bodyFatG / 1000, 2) + 'kg</b>ぶんです。</p>';
+      if (p30.spend > 0) {
+        h += '<p class="small muted">この30日のお酒代は <b>' + p30.spend.toLocaleString() + '円</b>。1年続けると約 ' +
+             Math.round(p30.spend * 12.17).toLocaleString() + '円。</p>';
+      }
+      if (p365.recorded >= 60) {
+        h += '<hr class="sep"><p class="small muted">記録のある' + p365.recorded + '日間の合計は <b>' + fmt(p365.totalAlcohol, 0) + 'g</b>。' +
+             '中ジョッキ <b>' + fmt(C.equivalents(p365.totalAlcohol).beer, 0) + '杯</b>ぶんが、この体を通っていきました。</p>';
+      }
+      h += '</div>';
+    }
+
+    /* 知っておくこと */
+    h += '<div class="section-title">数字の意味</div>';
+    h += '<div class="card flat small">';
+    h += '<p><b>純アルコール量</b>＝ 量(ml) × 度数(%) ÷ 100 × 0.8。' +
+         '「何杯飲んだか」ではなく、この g で数えるのが世界共通のものさしです。</p>';
+    h += '<p><b>20g</b>＝ 節度ある適度な飲酒の目安（1日平均）。中ジョッキ1杯、日本酒1合弱、ハイボール1.4杯にあたります。</p>';
+    h += '<p><b>' + riskLine() + 'g</b>＝ 厚生労働省「健康に配慮した飲酒に関するガイドライン」（2024年2月）で、' +
+         '生活習慣病のリスクを高めるとされる1日あたりの量（' + (profile().sex === 'female' ? '女性' : '男性') + '）。</p>';
+    h += '<p><b>60g</b>＝ 毎日続けると、数週間で脂肪肝が進みやすいとされる目安。</p>';
+    h += '<p class="dim">なお、大腸がんについては1日20g程度から発症リスクの上昇が指摘されており、' +
+         '「ここまでなら完全に安全」という量は、健康リスクの観点では存在しないというのが現在の国際的な見方です。</p>';
+    h += '</div>';
+
+    h += footer();
+    app.innerHTML = h;
+  }
+
+  /* ============================================================
+     ふりかえり（分析）
+     ============================================================ */
+  function viewStats() {
+    var h = '';
+    var cmp = S.drinkVsSober(120);
+    var p30 = S.period(30);
+
+    /* --- 核心：飲んだ翌朝 vs 飲まなかった翌朝 --- */
+    h += '<div class="section-title">「酒がないと眠れない」を、あなたのデータで確かめる</div>';
+    h += '<div class="card">';
+    if (cmp.drank.n < 3 || cmp.sober.n < 3) {
+      h += '<p class="muted">飲んだ翌朝が <b>' + cmp.drank.n + '日</b>、飲まなかった翌朝が <b>' + cmp.sober.n + '日</b>ぶん記録されています。</p>';
+      h += '<p class="small dim">両方が3日ぶんたまると、ここに「飲んだ夜」と「飲まなかった夜」の眠りの比較が出ます。' +
+           '休肝日の翌朝を数日記録するだけで、答えは自分のデータで出せます。</p>';
+    } else {
+      var better = (cmp.sober.sleepScore || 0) - (cmp.drank.sleepScore || 0);
+      h += G.compareBars([
+        { label: '飲んだ翌朝', value: cmp.drank.sleepScore, color: '#d94a4a' },
+        { label: '飲まない翌朝', value: cmp.sober.sleepScore, color: '#3ba676' }
+      ], 100, '点');
+      h += '<p class="small dim">睡眠スコア（睡眠時間・寝つき・中途覚醒・夜間のトイレ・起きたときのスッキリ感から算出／100点満点）</p>';
+
+      h += '<div class="verdict ' + (better > 3 ? 'good' : better < -3 ? 'bad' : '') + '">';
+      if (better > 3) {
+        h += '<b>飲まなかった翌朝のほうが、' + fmt(better, 1) + '点よく眠れています。</b>' +
+             '「飲まないと眠れない」は、少なくともあなたの記録の上では成り立っていません。' +
+             '寝つきが早くなった感覚は本物ですが、眠りの後半で取り返されています。';
+      } else if (better < -3) {
+        h += '<b>いまの記録では、飲んだ翌朝のほうが ' + fmt(-better, 1) + '点高く出ています。</b>' +
+             'ただし休肝日の記録がまだ ' + cmp.sober.n + '日と少ないこと、' +
+             '飲まない日は「眠れなくて不安な日」に偏りやすいことに注意してください。休肝日を続けて記録すると、数字は変わっていきます。';
+      } else {
+        h += '<b>飲んでも飲まなくても、眠りの質はほとんど変わっていません。</b>' +
+             '差がないのなら、眠るために飲む理由もありません。';
+      }
+      h += '</div>';
+
+      h += '<h3>内訳</h3>';
+      h += statRow('寝つくまでの時間', cmp.drank.latency, cmp.sober.latency, '分', true);
+      h += statRow('夜中に目が覚めた回数', cmp.drank.awake, cmp.sober.awake, '回', true);
+      h += statRow('夜間のトイレ', cmp.drank.toilet, cmp.sober.toilet, '回', true);
+      h += statRow('起きたときのスッキリ感', cmp.drank.refresh, cmp.sober.refresh, '／5', false);
+      h += statRow('睡眠時間', cmp.drank.hours, cmp.sober.hours, '時間', null);
+      h += '<p class="small dim" style="margin-top:10px">' +
+           '寝つきだけが速くなり、中途覚醒とトイレが増え、朝のスッキリ感が落ちる ―― ' +
+           'これがアルコールで眠ったときの典型的な形です。あなたの数字はどうでしょうか。</p>';
+    }
+    h += '</div>';
+
+    /* --- 寝酒の検証 --- */
+    var nc = S.nightcapCheck(120);
+    if (nc) {
+      h += '<div class="section-title">「寝るために飲んだ夜」だけを取り出すと</div>';
+      h += '<div class="card">';
+      h += '<p class="small muted">寝酒として記録した夜：<b>' + nc.n + '日</b></p>';
+      h += G.compareBars([
+        { label: '寝酒あり', value: nc.scoreYes, color: '#e07a3c' },
+        { label: 'それ以外', value: nc.scoreNo, color: '#6fb3e0' }
+      ], 100, '点');
+      var latDiff = (nc.latencyNo || 0) - (nc.latencyYes || 0);
+      var awDiff = (nc.awakeYes || 0) - (nc.awakeNo || 0);
+      h += '<p class="small">寝つきは <b>' + (latDiff > 0 ? fmt(latDiff, 0) + '分ぶん速く' : fmt(-latDiff, 0) + '分ぶん遅く') + '</b>、' +
+           '夜中に目が覚めた回数は <b>' + (awDiff > 0 ? fmt(awDiff, 1) + '回ぶん多く' : fmt(-awDiff, 1) + '回ぶん少なく') + '</b>なっています。</p>';
+      if (latDiff > 0 && awDiff > 0) {
+        h += '<div class="verdict bad"><b>寝酒の効果は「前半だけ」です。</b>' +
+             '寝つきは確かに速い。けれど夜中に起きる回数は増えている。' +
+             'これはアルコールが分解され切ったあと、抑えられていたREM睡眠が後半に押し寄せるためです。' +
+             '眠りを買ったのではなく、前半に借りて後半に返しているだけです。</div>';
+      }
+      h += '</div>';
+    }
+
+    /* --- 相関 --- */
+    var corr = S.alcoholSleepCorrelation(180);
+    if (corr.points.length >= 5) {
+      h += '<div class="section-title">飲んだ量 と 翌朝の眠りの質</div>';
+      h += '<div class="card"><div class="chart-scroll">' +
+           G.scatter(corr.points, corr.reg, { yLabel: '睡眠スコア', dotColor: '#6fb3e0' }) + '</div>';
+      if (corr.reg) {
+        var slope20 = corr.reg.b * 20;
+        h += '<p class="small">この線は、あなたの ' + corr.reg.n + '日ぶんの記録から引いたものです。' +
+             '純アルコールが20g（中ジョッキ1杯）増えるごとに、睡眠スコアは平均 <b>' +
+             (slope20 < 0 ? fmt(-slope20, 1) + '点さがる' : fmt(slope20, 1) + '点あがる') + '</b>傾向。' +
+             '（相関係数 r = ' + fmt(corr.reg.r, 2) + '）</p>';
+      }
+      h += '</div>';
+    }
+
+    var dcorr = S.alcoholDamageCorrelation(180);
+    if (dcorr.points.length >= 5) {
+      h += '<div class="section-title">飲んだ量 と 翌朝のダメージ</div>';
+      h += '<div class="card"><div class="chart-scroll">' +
+           G.scatter(dcorr.points, dcorr.reg, { yLabel: 'ダメージ', dotColor: '#e07a3c', lineColor: '#d94a4a' }) + '</div>';
+      if (dcorr.reg) {
+        var x = dcorr.reg.b > 0 ? (40 - dcorr.reg.a) / dcorr.reg.b : null;
+        if (x != null && x > 0 && x < 200) {
+          h += '<p class="small">この傾きでいくと、純アルコール <b>約' + fmt(x, 0) + 'g</b>を超えたあたりから、' +
+               '翌朝のダメージがはっきり出はじめる計算になります。あなたの「これ以上はきつい」ラインです。</p>';
+        }
+      }
+      h += '</div>';
+    }
+
+    /* --- 日別グラフ --- */
+    var dates = S.range(30);
+    var bars = dates.map(function (d) {
+      var s = S.daySummary(d);
+      return { date: d, alcohol: s.alcohol, color: s.band.color };
+    });
+    h += '<div class="section-title">この30日</div>';
+    h += '<div class="card"><div class="chart-scroll">' + G.dailyBars(bars, { riskLine: riskLine() }) + '</div>';
+    h += '<div class="kpis">' +
+      '<div class="kpi"><div class="v">' + fmt(p30.dailyAvg, 1) + '<small style="font-size:11px">g</small></div><div class="l">1日平均</div></div>' +
+      '<div class="kpi"><div class="v" style="color:var(--green)">' + p30.restDays + '</div><div class="l">休肝日</div></div>' +
+      '<div class="kpi"><div class="v" style="color:var(--red)">' + p30.overRisk + '</div><div class="l">' + riskLine() + 'g超えの日</div></div>' +
+      '</div>';
+    if (p30.maxDate) {
+      h += '<p class="small dim" style="margin-top:8px">いちばん飲んだのは ' + jpDate(p30.maxDate) + ' の ' + fmt(p30.maxDay, 1) + 'g。</p>';
+    }
+    h += '</div>';
+
+    /* --- 月別トレンド --- */
+    var trend = S.monthlyTrend(6);
+    if (trend.filter(function (m) { return m.avg != null; }).length >= 2) {
+      h += '<div class="section-title">月ごとの1日平均（量は増えていないか）</div>';
+      h += '<div class="card"><div class="chart-scroll">' + G.trendLine(trend) + '</div>';
+      h += '<p class="small dim">同じ酔いを得るのに必要な量が増えていくのが「耐性」です。' +
+           '線が右上がりなら、体が慣れてきているサインかもしれません。</p></div>';
+    }
+
+    /* --- 飲んだ理由 --- */
+    var reasons = {};
+    S.range(90).forEach(function (d) {
+      (Store.day(d).reasons || []).forEach(function (r) { reasons[r] = (reasons[r] || 0) + 1; });
+    });
+    var rkeys = Object.keys(reasons).sort(function (a, b) { return reasons[b] - reasons[a]; });
+    if (rkeys.length) {
+      h += '<div class="section-title">この90日、なぜ飲んだか</div>';
+      h += '<div class="card">';
+      var maxR = reasons[rkeys[0]];
+      h += G.compareBars(rkeys.map(function (k) {
+        var r = AL.REASONS.filter(function (x) { return x.id === k; })[0];
+        return { label: (r ? r.emoji + ' ' + r.name : k), value: reasons[k], color: k === 'sleep' ? '#e07a3c' : k === 'stress' ? '#d94a4a' : '#6fb3e0' };
+      }), maxR, '日');
+      if (reasons.sleep >= 3 || reasons.stress >= 3) {
+        h += '<p class="small muted" style="margin-top:8px">' +
+             '「寝るため」「ストレス」で飲む回数が多いときは、お酒が楽しみではなく<b>対処法</b>になっています。' +
+             'ここが増えていくと、量は自然に増えていきます。</p>';
+      }
+      h += '</div>';
+    }
+
+    h += footer();
+    app.innerHTML = h;
+  }
+
+  function statRow(label, drank, sober, unit, lowerBetter) {
+    if (drank == null && sober == null) return '';
+    var diff = (drank != null && sober != null) ? drank - sober : null;
+    var judge = '', color = 'var(--dim)';
+    if (diff != null && Math.abs(diff) > 0.05 && lowerBetter !== null) {
+      var worse = lowerBetter ? diff > 0 : diff < 0;
+      color = worse ? 'var(--red)' : 'var(--green)';
+      judge = worse ? '飲んだ翌朝のほうが悪い' : '飲んだ翌朝のほうが良い';
+    }
+    return '<div class="stat-row">' +
+      '<div class="sr-label">' + esc(label) + '</div>' +
+      '<div class="sr-vals">' +
+        '<span><i>飲んだ翌朝</i> <b>' + fmt(drank, 1) + unit + '</b></span>' +
+        '<span><i>飲まない翌朝</i> <b>' + fmt(sober, 1) + unit + '</b></span>' +
+      '</div>' +
+      (judge ? '<div class="sr-judge" style="color:' + color + '">' + judge + '</div>' : '') +
+      '</div>';
+  }
+
+  /* ============================================================
+     設定
+     ============================================================ */
+  function viewSettings() {
+    var p = profile();
+    var h = '';
+
+    h += '<div class="card"><h2>あなたのこと</h2>';
+    h += '<p class="small dim">体重と性別は、分解にかかる時間と血中濃度の計算に使います。</p>';
+    h += '<label class="field"><span>呼び名</span><input id="p-name" value="' + esc(p.name || '') + '" placeholder="（任意）"></label>';
+    h += '<div class="grid2">' +
+      '<label class="field"><span>年齢</span><input id="p-age" type="number" inputmode="numeric" value="' + (p.age || '') + '"></label>' +
+      '<label class="field"><span>性別</span><select id="p-sex">' +
+        '<option value="male"' + (p.sex === 'male' ? ' selected' : '') + '>男性</option>' +
+        '<option value="female"' + (p.sex === 'female' ? ' selected' : '') + '>女性</option>' +
+      '</select></label>' +
+      '</div>';
+    h += '<div class="grid3">' +
+      '<label class="field"><span>体重(kg)</span><input id="p-weight" type="number" inputmode="decimal" value="' + (p.weight || '') + '"></label>' +
+      '<label class="field"><span>身長(cm)</span><input id="p-height" type="number" inputmode="numeric" value="' + (p.height || '') + '"></label>' +
+      '<label class="field"><span>腹囲(cm)</span><input id="p-waist" type="number" inputmode="numeric" value="' + (p.waist || '') + '"></label>' +
+      '</div>';
+    h += '<label class="field"><span>いつも飲み始める時刻</span><select id="p-start">';
+    for (var hh = 15; hh <= 26; hh++) {
+      var v = hh % 24;
+      h += '<option value="' + v + '"' + ((p.drinkStart || 20) === v ? ' selected' : '') + '>' + ('0' + v).slice(-2) + ':00</option>';
+    }
+    h += '</select></label>';
+    h += '<div class="btn-row" style="margin-top:14px"><button class="btn primary" data-act="save-profile">保存する</button></div>';
+    h += '</div>';
+
+    h += '<div class="card"><h2>データ</h2>';
+    h += '<p class="small dim">記録はこの端末の中だけに保存されます。どこにも送信されません。' +
+         'ブラウザのデータを消すと記録も消えるので、ときどき書き出して保管してください。</p>';
+    h += '<div class="btn-row">' +
+      '<button class="btn" data-act="export">書き出す（JSON）</button>' +
+      '<button class="btn" data-act="import">読み込む</button>' +
+      '<button class="btn" data-act="sample">お試しデータを入れる</button>' +
+      '</div>';
+    h += '<div class="btn-row" style="margin-top:10px"><button class="btn danger" data-act="clear">すべて消す</button></div>';
+    h += '<input type="file" id="import-file" accept="application/json,.json" style="display:none">';
+    h += '</div>';
+
+    /* 緊急時 */
+    h += '<div class="section-title">もしものとき</div>';
+    h += '<div class="card sos"><h2>🚑 急性アルコール中毒のサイン</h2>';
+    h += '<ul>';
+    AL.HELP.emergency.forEach(function (x) { h += '<li>' + esc(x) + '</li>'; });
+    h += '</ul>';
+    h += '<p class="small"><b>ひとつでも当てはまったら、迷わず119番。</b></p>';
+    h += '<ul>';
+    AL.HELP.emergencyAction.forEach(function (x) { h += '<li>' + esc(x) + '</li>'; });
+    h += '</ul>';
+    h += '</div>';
+
+    h += '<div class="card"><h2>相談できるところ</h2>';
+    h += '<p class="small muted">アルコールの問題は、意志の強さの問題ではなく、体と脳に起きる変化です。' +
+         '「量を減らしたいのに減らせない」と感じたら、早いほど戻りやすいことがわかっています。</p>';
+    AL.HELP.consult.forEach(function (c) {
+      h += '<p class="small" style="margin:10px 0"><b>' + esc(c.name) + '</b><br><span class="dim">' + esc(c.note) + '</span></p>';
+    });
+    h += '</div>';
+
+    h += '<div class="card flat"><h2>このアプリについて</h2>';
+    h += '<p class="small muted">' + esc(AL.DISCLAIMER) + '</p>';
+    h += '<p class="small dim">計算の根拠：純アルコール量＝量(ml)×度数(%)÷100×0.8。' +
+         '分解速度＝体重(kg)×0.1 g/時。血中濃度はWidmark式（体内分布係数 男性0.68／女性0.55、下降 0.15‰/時）。' +
+         '基準値は厚生労働省「健康に配慮した飲酒に関するガイドライン」（2024年2月）ほか。いずれも目安であり、個人差があります。</p>';
+    h += '</div>';
+
+    h += footer();
+    app.innerHTML = h;
+  }
+
+  function footer() {
+    return '<div class="foot">記録は端末内（localStorage）にのみ保存されます。' +
+      'このアプリは医療機器ではなく、表示される数値はすべて一般的な計算式による目安です。<br>' +
+      '体調に不安があるとき、量を減らせないと感じたときは、医療機関や精神保健福祉センターにご相談ください。</div>';
+  }
+
+  /* ============================================================
+     日別シート
+     ============================================================ */
+  function openDay(ymd, tab) {
+    state.editDate = ymd;
+    state.editTab = tab || 'drink';
+    state.builder = defaultBuilder();
+    renderSheet();
+  }
+
+  function defaultBuilder() {
+    return { typeId: 'beer', serveIdx: 0, abv: null, wariId: 'soda', ratio: 3, count: 1, cocktailId: 'highball', customMl: null };
+  }
+
+  function closeSheet() {
+    captureSheetInputs();
+    pruneDay(state.editDate);
+    state.editDate = null;
+    sheetHost.innerHTML = '';
+    render();
+  }
+
+  /* 開いただけ・見ただけでできた空っぽの記録は残さない */
+  function pruneDay(ymd) {
+    var d = Store.data.days[ymd];
+    if (!d) return;
+    if (S.isEmptyMorning(d.morning)) d.morning = null;
+    if (!S.hasContent(d)) delete Store.data.days[ymd];
+    Store.save();
+  }
+
+  /* テキスト入力の内容を、再描画の前に取り込む */
+  function captureSheetInputs() {
+    if (!state.editDate) return;
+    var d = Store.day(state.editDate, true);
+    var spend = document.getElementById('d-spend');
+    var memo = document.getElementById('d-memo');
+    if (spend) d.spend = Number(spend.value) || 0;
+    if (memo) d.memo = memo.value;
+
+    var wn = document.getElementById('m-worrynote');
+    var mm = document.getElementById('m-memo');
+    var bed = document.getElementById('m-bed');
+    var wake = document.getElementById('m-wake');
+    if (wn || mm || bed || wake) {
+      var m = d.morning || emptyMorning();
+      if (bed) m.sleep.bed = bed.value;
+      if (wake) m.sleep.wake = wake.value;
+      if (wn) m.sleep.worryNote = wn.value;
+      if (mm) m.memo = mm.value;
+      // 何も入力されていないなら、朝の記録そのものを作らない
+      // （タブを開いただけの日が「休肝日」として数えられてしまうため）
+      d.morning = S.isEmptyMorning(m) ? null : m;
+    }
+    Store.save();
+  }
+
+  function emptyMorning() {
+    return { sleep: { bed: '', wake: '', latency: null, awake: null, refresh: null, toilet: null, worry: 0, worryNote: '', nightcap: false }, damage: {}, memo: '' };
+  }
+
+  function renderSheet() {
+    var ymd = state.editDate;
+    if (!ymd) { sheetHost.innerHTML = ''; return; }
+    var d = Store.day(ymd, true);
+    var t = C.dayTotals(d.drinks);
+
+    var h = '<div class="sheet-bg" data-act="sheet-bg"><div class="sheet" data-stop="1">';
+    h += '<div class="sheet-head"><h2>' + jpDate(ymd) + '</h2>' +
+         '<button class="x" data-act="close-sheet">×</button></div>';
+
+    h += '<div class="tabs">' +
+      '<button data-act="tab" data-tab="drink" class="' + (state.editTab === 'drink' ? 'on' : '') + '">🍶 この夜のお酒</button>' +
+      '<button data-act="tab" data-tab="morning" class="' + (state.editTab === 'morning' ? 'on' : '') + '">🌅 この朝のからだ</button>' +
+      '</div>';
+
+    if (state.editTab === 'drink') {
+      h += sheetDrinks(ymd, d, t);
+    } else {
+      h += sheetMorning(ymd, d);
+    }
+
+    h += '</div></div>';
+    sheetHost.innerHTML = h;
+  }
+
+  function sheetDrinks(ymd, d, t) {
+    var h = '';
+    var f = C.forecast(t.alcohol, profile(), profile().drinkStart || 20);
+
+    h += '<div class="card hero" style="margin:10px 0">' +
+      '<div class="dim">この日の純アルコール量</div>' +
+      '<div class="big" style="font-size:38px;color:' + f.band.color + '">' + fmt(t.alcohol, 1) + '<small>g</small></div>' +
+      '<div>' + bandBadge(t.alcohol) + '</div>';
+    if (t.alcohol > 0) {
+      h += '<p class="small muted" style="margin-top:8px">' +
+        '肝臓の残業 <b>' + fmt(f.hours, 1) + '時間</b>（' + f.soberLabel + 'ごろまで）／' +
+        '最高血中濃度 <b>' + fmt(f.peakBac, 2) + '‰</b>（' + f.stage.name + '）／' +
+        '<b>' + fmt(t.kcal) + 'kcal</b></p>';
+    }
+    h += '</div>';
+
+    /* 記録済みリスト */
+    if (d.drinks.length) {
+      d.drinks.forEach(function (e, i) {
+        var dr = C.drink(e.typeId);
+        var w = C.wari(e.wariId);
+        var sub = [];
+        sub.push(e.baseMl + 'ml');
+        sub.push(e.abv + '%');
+        if (w && w.id !== 'none' && w.id !== 'straight') sub.push(w.name);
+        if (e.count > 1) sub.push('×' + e.count);
+        h += '<div class="drink-item">' +
+          '<div class="em">' + (dr ? dr.emoji : '🥃') + '</div>' +
+          '<div class="tx"><b>' + esc(e.label || (dr ? dr.name : '')) + '</b>' +
+            '<div class="s">' + esc(sub.join(' ／ ')) + '</div></div>' +
+          '<div class="g">' + fmt(C.pureAlcohol(e), 1) + 'g</div>' +
+          '<button class="x" data-act="del-drink" data-i="' + i + '" aria-label="削除">×</button>' +
+          '</div>';
+      });
+    } else {
+      h += '<p class="dim small center" style="padding:8px 0">まだ1杯も記録がありません。</p>';
+    }
+
+    /* 追加フォーム */
+    h += '<hr class="sep"><h3 style="margin-top:0">1杯たす</h3>';
+    h += drinkBuilder();
+
+    /* 理由・金額・メモ */
+    h += '<hr class="sep"><h3 style="margin-top:0">なぜ飲んだか（いくつでも）</h3>';
+    h += '<div class="chips">';
+    AL.REASONS.forEach(function (r) {
+      var on = (d.reasons || []).indexOf(r.id) >= 0;
+      h += '<button class="chip ' + (on ? 'on' : '') + '" data-act="reason" data-id="' + r.id + '">' + r.emoji + ' ' + r.name + '</button>';
+    });
+    h += '</div>';
+
+    h += '<label class="field"><span>この日のお酒代（円・任意）</span>' +
+      '<input id="d-spend" type="number" inputmode="numeric" value="' + (d.spend || '') + '" placeholder="0"></label>';
+    h += '<label class="field"><span>メモ（任意）</span>' +
+      '<textarea id="d-memo" placeholder="誰と・どこで・どんな気分だったか">' + esc(d.memo || '') + '</textarea></label>';
+
+    h += '<div class="btn-row" style="margin-top:14px">' +
+      '<button class="btn primary block" data-act="save-close">保存してとじる</button></div>';
+    return h;
+  }
+
+  function drinkBuilder() {
+    var b = state.builder || (state.builder = defaultBuilder());
+    var dr = C.drink(b.typeId);
+    var h = '';
+
+    h += '<label class="field"><span>種類</span><select data-act="b-type">';
+    AL.DRINKS.forEach(function (x) {
+      h += '<option value="' + x.id + '"' + (x.id === b.typeId ? ' selected' : '') + '>' + x.emoji + ' ' + x.name + '</option>';
+    });
+    h += '</select></label>';
+
+    if (!dr) return h;
+
+    if (dr.kind === 'cocktail') {
+      h += '<label class="field"><span>カクテル</span><select data-act="b-cocktail">';
+      AL.COCKTAILS.forEach(function (c) {
+        h += '<option value="' + c.id + '"' + (c.id === b.cocktailId ? ' selected' : '') + '>' + c.name + '</option>';
+      });
+      h += '</select></label>';
+      var ck = C.cocktail(b.cocktailId);
+      if (ck) {
+        var base = C.drink(ck.base);
+        var abv = ck.abv != null ? ck.abv : (base ? base.abv : 20);
+        h += '<p class="small dim">' + esc((base ? base.name : '') + ' ' + ck.baseMl + 'ml（' + abv + '%）＋ 割り材 ' + ck.mixMl + 'ml') + '</p>';
+        if (ck.warn) h += '<p class="small" style="color:var(--amber)">⚠️ ' + esc(ck.warn) + '</p>';
+      }
+    } else {
+      var isSpirit = dr.kind === 'spirit';
+      h += '<label class="field"><span>' + (isSpirit ? '原液の量（割る前）' : '飲む量') + '</span><select data-act="b-serve">';
+      dr.serves.forEach(function (s, i) {
+        h += '<option value="' + i + '"' + (i === b.serveIdx ? ' selected' : '') + '>' + s.name + '</option>';
+      });
+      h += '<option value="custom"' + (b.serveIdx === 'custom' ? ' selected' : '') + '>自分で入力…</option>';
+      h += '</select></label>';
+
+      if (b.serveIdx === 'custom') {
+        h += '<label class="field"><span>' + (isSpirit ? '原液' : '') + 'ml</span>' +
+          '<input type="number" inputmode="numeric" data-act="b-ml" value="' + (b.customMl || 100) + '"></label>';
+      }
+
+      h += '<label class="field"><span>度数（%）</span>' +
+        '<input type="number" inputmode="decimal" step="0.5" data-act="b-abv" value="' + (b.abv != null ? b.abv : dr.abv) + '"></label>';
+
+      if (isSpirit) {
+        h += '<label class="field"><span>割り方</span><select data-act="b-wari">';
+        AL.WARI.forEach(function (w) {
+          h += '<option value="' + w.id + '"' + (w.id === b.wariId ? ' selected' : '') + '>' + w.name + '</option>';
+        });
+        h += '</select></label>';
+        var w = C.wari(b.wariId);
+        if (w && w.ratio > 0) {
+          h += '<label class="field"><span>濃さ（原液 : 割り材）</span><select data-act="b-ratio">';
+          AL.RATIOS.forEach(function (r) {
+            h += '<option value="' + r.ratio + '"' + (r.ratio === b.ratio ? ' selected' : '') + '>' + r.name + '</option>';
+          });
+          h += '</select></label>';
+        }
+        if (w && w.note) h += '<p class="small" style="color:var(--muted);margin-top:8px">💡 ' + esc(w.note) + '</p>';
+      }
+      if (dr.warn) h += '<p class="small" style="color:var(--amber)">⚠️ ' + esc(dr.warn) + '</p>';
+      if (dr.praise) h += '<p class="small" style="color:var(--green)">🌱 ' + esc(dr.praise) + '</p>';
+    }
+
+    h += '<label class="field"><span>杯数</span><select data-act="b-count">';
+    for (var i = 1; i <= 12; i++) h += '<option value="' + i + '"' + (i === b.count ? ' selected' : '') + '>' + i + ' 杯</option>';
+    h += '</select></label>';
+
+    var preview = buildEntry();
+    if (preview) {
+      var g = C.pureAlcohol(preview);
+      h += '<div class="card flat" style="margin:12px 0 6px;padding:12px">' +
+        '<div class="small dim">これを足すと</div>' +
+        '<div style="font-size:22px;font-weight:800;color:var(--amber)">＋ ' + fmt(g, 1) + ' g' +
+        '<span class="small dim" style="font-weight:400"> ／ ' + fmt(C.kcal(preview)) + ' kcal</span></div>' +
+        '<div class="small muted">肝臓の残業が <b>' + fmt(g / C.metabolicRate(profile().weight), 1) + '時間</b>増えます</div>' +
+        '</div>';
+    }
+    h += '<button class="btn primary block" data-act="add-drink">この1杯を記録する</button>';
+    return h;
+  }
+
+  /* ビルダーの状態から drink エントリを作る */
+  function buildEntry() {
+    var b = state.builder;
+    if (!b) return null;
+    var dr = C.drink(b.typeId);
+    if (!dr) return null;
+
+    if (dr.kind === 'cocktail') {
+      var ck = C.cocktail(b.cocktailId);
+      if (!ck) return null;
+      var base = C.drink(ck.base);
+      var abv = ck.abv != null ? ck.abv : (base ? base.abv : 20);
+      return {
+        typeId: ck.base, label: ck.name, abv: abv, baseMl: ck.baseMl,
+        wariId: ck.wari, wariMl: ck.mixMl, mixKcal: ck.mixKcal,
+        sugarKcal100: base ? base.sugarKcal100 : 0, count: b.count
+      };
+    }
+
+    var ml;
+    if (b.serveIdx === 'custom') ml = Number(b.customMl) || 0;
+    else ml = (dr.serves[b.serveIdx] || dr.serves[0] || { ml: 0 }).ml;
+
+    var isSpirit = dr.kind === 'spirit';
+    var wariId = isSpirit ? b.wariId : 'none';
+    var w = C.wari(wariId);
+    var wariMl = (isSpirit && w && w.ratio > 0) ? C.wariMlFor(ml, b.ratio) : 0;
+
+    // 「焼酎（乙類・本格）」→「焼酎」。割り方は一覧の2行目に出すので名前には入れない
+    var label = dr.name.replace(/（.*?）/g, '').trim();
+
+    return {
+      typeId: dr.id, label: label,
+      abv: b.abv != null ? Number(b.abv) : dr.abv,
+      baseMl: ml, wariId: wariId, wariMl: wariMl,
+      sugarKcal100: dr.sugarKcal100, count: b.count
+    };
+  }
+
+  /* --- 翌朝タブ --- */
+  function sheetMorning(ymd, d) {
+    var m = d.morning || emptyMorning();
+    var prev = Store.day(C.addDays(ymd, -1));
+    var prevT = C.dayTotals(prev.drinks);
+    var score = C.sleepScore(m.sleep);
+    var dscore = C.damageScore(m.damage);
+
+    var h = '';
+    h += '<p class="small dim" style="margin:10px 0 0">ここに書くのは <b>' + jpDate(ymd) + ' の朝</b>の状態です。' +
+         'つまり <b>' + jpDate(C.addDays(ymd, -1)) + ' の夜</b>に飲んだお酒（純アルコール ' + fmt(prevT.alcohol, 1) + 'g）の結果として記録されます。</p>';
+
+    if (score != null || dscore != null) {
+      h += '<div class="card flat" style="margin:10px 0"><div class="kpis">' +
+        '<div class="kpi"><div class="v" style="color:' + (score >= 70 ? 'var(--green)' : score >= 45 ? 'var(--amber)' : 'var(--red)') + '">' +
+          (score == null ? '—' : score) + '</div><div class="l">睡眠スコア</div></div>' +
+        '<div class="kpi"><div class="v" style="color:' + (dscore >= 45 ? 'var(--red)' : dscore >= 20 ? 'var(--amber)' : 'var(--green)') + '">' +
+          (dscore == null ? '—' : dscore) + '</div><div class="l">ダメージ</div></div>' +
+        '<div class="kpi"><div class="v">' + (C.sleepHours(m.sleep) == null ? '—' : fmt(C.sleepHours(m.sleep), 1)) + '</div><div class="l">睡眠時間(h)</div></div>' +
+        '</div></div>';
+    }
+
+    h += '<h3>眠り</h3>';
+    h += '<div class="grid2">' +
+      '<label class="field"><span>寝た時刻</span><input id="m-bed" type="time" value="' + esc(m.sleep.bed || '') + '"></label>' +
+      '<label class="field"><span>起きた時刻</span><input id="m-wake" type="time" value="' + esc(m.sleep.wake || '') + '"></label>' +
+      '</div>';
+
+    h += '<label class="field"><span>布団に入ってから眠るまで</span><select data-act="m-latency">';
+    h += '<option value="">—</option>';
+    AL.LATENCY.forEach(function (l) {
+      h += '<option value="' + l.v + '"' + (String(m.sleep.latency) === String(l.v) ? ' selected' : '') + '>' + l.name + '</option>';
+    });
+    h += '</select></label>';
+
+    h += '<div class="grid2">';
+    h += '<label class="field"><span>夜中に目が覚めた回数</span><select data-act="m-awake"><option value="">—</option>';
+    for (var i = 0; i <= 6; i++) h += '<option value="' + i + '"' + (String(m.sleep.awake) === String(i) ? ' selected' : '') + '>' + i + '回</option>';
+    h += '</select></label>';
+    h += '<label class="field"><span>夜中のトイレ</span><select data-act="m-toilet"><option value="">—</option>';
+    for (var j = 0; j <= 5; j++) h += '<option value="' + j + '"' + (String(m.sleep.toilet) === String(j) ? ' selected' : '') + '>' + j + '回</option>';
+    h += '</select></label>';
+    h += '</div>';
+
+    h += '<label class="field"><span>起きたときのスッキリ感</span></label>';
+    h += '<div class="levels" style="margin-top:-6px">';
+    ['最悪', 'だるい', 'ふつう', '軽い', 'スッキリ'].forEach(function (nm, k) {
+      var v = k + 1;
+      h += '<button data-act="m-refresh" data-v="' + v + '" class="' + (Number(m.sleep.refresh) === v ? 'on' : '') + '" ' +
+           'style="' + (Number(m.sleep.refresh) === v ? 'background:var(--amber);color:#241c04;border-color:transparent' : '') + '">' + nm + '</button>';
+    });
+    h += '</div>';
+
+    h += '<label class="field" style="margin-top:14px"><span>考え事・不安はあったか</span></label>';
+    h += '<div class="levels" style="margin-top:-6px">';
+    ['なかった', '少し', 'けっこう', '頭から離れない'].forEach(function (nm, k) {
+      h += '<button data-act="m-worry" data-v="' + k + '" class="' + (Number(m.sleep.worry || 0) === k ? 'on' : '') + '">' + nm + '</button>';
+    });
+    h += '</div>';
+    h += '<label class="field"><span>何を考えていたか（任意）</span>' +
+      '<input id="m-worrynote" value="' + esc(m.sleep.worryNote || '') + '" placeholder="仕事のこと／お金のこと など"></label>';
+
+    h += '<label class="field"><span></span></label>';
+    h += '<div class="chips" style="margin-top:-10px">' +
+      '<button class="chip ' + (m.sleep.nightcap ? 'on' : '') + '" data-act="m-nightcap">🌙 前の晩は「寝るため」に飲んだ</button>' +
+      '</div>';
+
+    h += '<hr class="sep"><h3 style="margin-top:0">からだのダメージ</h3>';
+    AL.DAMAGE_ITEMS.forEach(function (it) {
+      h += '<div class="dmg-row"><div class="nm">' + it.emoji + ' ' + it.name + '</div><div class="levels">';
+      AL.DAMAGE_LEVELS.forEach(function (nm, v) {
+        var on = Number(m.damage[it.id] || 0) === v && m.damage[it.id] != null;
+        h += '<button data-act="m-dmg" data-id="' + it.id + '" data-v="' + v + '" class="' + (on ? 'on' : '') + '">' + nm + '</button>';
+      });
+      h += '</div></div>';
+    });
+
+    h += '<label class="field"><span>朝のメモ（任意）</span>' +
+      '<textarea id="m-memo" placeholder="どんな朝だったか">' + esc(m.memo || '') + '</textarea></label>';
+
+    h += '<div class="btn-row" style="margin-top:14px">' +
+      '<button class="btn primary block" data-act="save-close">保存してとじる</button></div>';
+    if (d.morning) {
+      h += '<div class="btn-row" style="margin-top:8px"><button class="btn danger block" data-act="del-morning">この朝の記録を消す</button></div>';
+    }
+    return h;
+  }
+
+  /* ============================================================
+     イベント
+     ============================================================ */
+  function setMorning(fn) {
+    captureSheetInputs();
+    var d = Store.day(state.editDate, true);
+    d.morning = d.morning || emptyMorning();
+    fn(d.morning);
+    Store.save();
+    renderSheet();
+  }
+
+  document.addEventListener('click', function (ev) {
+    var el = ev.target.closest('[data-act]');
+    if (!el) return;
+    var act = el.getAttribute('data-act');
+
+    switch (act) {
+      case 'go':
+        state.view = el.getAttribute('data-view'); render(); break;
+
+      case 'open-day':
+        openDay(el.getAttribute('data-date'), el.getAttribute('data-tab')); break;
+
+      case 'close-sheet':
+        closeSheet(); break;
+
+      case 'sheet-bg':
+        if (ev.target === el) closeSheet(); break;
+
+      case 'tab':
+        captureSheetInputs();
+        state.editTab = el.getAttribute('data-tab');
+        renderSheet(); break;
+
+      case 'cal': {
+        var dm = Number(el.getAttribute('data-d'));
+        var nd = new Date(state.calYear, state.calMonth + dm, 1);
+        state.calYear = nd.getFullYear(); state.calMonth = nd.getMonth();
+        render(); break;
+      }
+
+      case 'add-drink': {
+        captureSheetInputs();
+        var entry = buildEntry();
+        if (entry && C.pureAlcohol(entry) >= 0) {
+          var d = Store.day(state.editDate, true);
+          d.drinks.push(entry);
+          Store.save();
+          renderSheet();
+        }
+        break;
+      }
+
+      case 'del-drink': {
+        captureSheetInputs();
+        var i = Number(el.getAttribute('data-i'));
+        var dd = Store.day(state.editDate, true);
+        dd.drinks.splice(i, 1);
+        Store.save();
+        renderSheet(); break;
+      }
+
+      case 'reason': {
+        captureSheetInputs();
+        var day = Store.day(state.editDate, true);
+        var id = el.getAttribute('data-id');
+        day.reasons = day.reasons || [];
+        var ix = day.reasons.indexOf(id);
+        if (ix >= 0) day.reasons.splice(ix, 1); else day.reasons.push(id);
+        Store.save(); renderSheet(); break;
+      }
+
+      case 'm-refresh': setMorning(function (m) { m.sleep.refresh = Number(el.getAttribute('data-v')); }); break;
+      case 'm-worry':   setMorning(function (m) { m.sleep.worry = Number(el.getAttribute('data-v')); }); break;
+      case 'm-nightcap':setMorning(function (m) { m.sleep.nightcap = !m.sleep.nightcap; }); break;
+      case 'm-dmg':     setMorning(function (m) { m.damage[el.getAttribute('data-id')] = Number(el.getAttribute('data-v')); }); break;
+
+      case 'del-morning':
+        if (confirm('この朝の記録を消します。よろしいですか？')) {
+          Store.day(state.editDate, true).morning = null;
+          Store.save(); renderSheet();
+        }
+        break;
+
+      case 'save-close': closeSheet(); break;
+
+      case 'save-profile': {
+        var p = profile();
+        p.name = document.getElementById('p-name').value.trim();
+        p.age = Number(document.getElementById('p-age').value) || null;
+        p.sex = document.getElementById('p-sex').value;
+        p.weight = Number(document.getElementById('p-weight').value) || 70;
+        p.height = Number(document.getElementById('p-height').value) || null;
+        p.waist = Number(document.getElementById('p-waist').value) || null;
+        p.drinkStart = Number(document.getElementById('p-start').value);
+        Store.save();
+        render();
+        alert('保存しました。');
+        break;
+      }
+
+      case 'export': {
+        var blob = new Blob([Store.exportJson()], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url; a.download = 'yoilog-' + C.today() + '.json';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+        break;
+      }
+
+      case 'import': document.getElementById('import-file').click(); break;
+
+      case 'sample':
+        if (confirm('お試し用のサンプル記録を入れます（今あるデータは消えます）。よろしいですか？')) {
+          makeSample(); render();
+        }
+        break;
+
+      case 'clear':
+        if (confirm('すべての記録を消します。元に戻せません。よろしいですか？')) {
+          Store.clearAll(); render();
+        }
+        break;
+    }
+  });
+
+  document.addEventListener('change', function (ev) {
+    var el = ev.target.closest('[data-act]');
+    if (el) {
+      var act = el.getAttribute('data-act');
+      var b = state.builder;
+      switch (act) {
+        case 'b-type':
+          b.typeId = el.value; b.serveIdx = 0; b.abv = null; b.customMl = null;
+          renderSheet(); return;
+        case 'b-cocktail': b.cocktailId = el.value; renderSheet(); return;
+        case 'b-serve': b.serveIdx = el.value === 'custom' ? 'custom' : Number(el.value); renderSheet(); return;
+        case 'b-ml': b.customMl = Number(el.value) || 0; renderSheet(); return;
+        case 'b-abv': b.abv = Number(el.value); renderSheet(); return;
+        case 'b-wari': b.wariId = el.value; renderSheet(); return;
+        case 'b-ratio': b.ratio = Number(el.value); renderSheet(); return;
+        case 'b-count': b.count = Number(el.value); renderSheet(); return;
+        case 'm-latency': setMorning(function (m) { m.sleep.latency = el.value === '' ? null : Number(el.value); }); return;
+        case 'm-awake': setMorning(function (m) { m.sleep.awake = el.value === '' ? null : Number(el.value); }); return;
+        case 'm-toilet': setMorning(function (m) { m.sleep.toilet = el.value === '' ? null : Number(el.value); }); return;
+      }
+    }
+    if (ev.target.id === 'import-file' && ev.target.files && ev.target.files[0]) {
+      var fr = new FileReader();
+      fr.onload = function () {
+        try { Store.importJson(fr.result); alert('読み込みました。'); render(); }
+        catch (e) { alert('読み込めませんでした：' + e.message); }
+      };
+      fr.readAsText(ev.target.files[0]);
+    }
+  });
+
+  document.getElementById('tabbar').addEventListener('click', function (ev) {
+    var b = ev.target.closest('button[data-view]');
+    if (!b) return;
+    state.view = b.getAttribute('data-view');
+    window.scrollTo(0, 0);
+    render();
+  });
+
+  /* ============================================================
+     サンプルデータ（アプリの見え方を確かめる用）
+     ============================================================ */
+  function makeSample() {
+    Store.clearAll();
+    var p = Store.data.profile;
+    p.name = 'たかし'; p.age = 43; p.sex = 'male'; p.weight = 76; p.height = 171; p.waist = 91; p.drinkStart = 20;
+
+    // 疑似乱数（毎回同じサンプルが出るように）
+    var seed = 20260809;
+    function rnd() { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; }
+
+    for (var i = 45; i >= 0; i--) {
+      var ymd = C.addDays(C.today(), -i);
+      var dow = C.parseYmd(ymd).getDay();
+      var day = Store.day(ymd, true);
+
+      var rest = rnd() < 0.17;                         // たまに休肝日
+      var heavy = (dow === 5 || dow === 6) && rnd() < 0.7;
+
+      if (!rest) {
+        var beers = heavy ? 2 : 1;
+        day.drinks.push({ typeId: 'beer', label: 'ビール', abv: 5, baseMl: 500, wariId: 'none', wariMl: 0, sugarKcal100: 12, count: beers });
+        if (rnd() < 0.8) {
+          var wid = rnd() < 0.5 ? 'soda' : 'oyu';
+          day.drinks.push({
+            typeId: 'shochu', label: '焼酎', abv: 25,
+            baseMl: 90, wariId: wid, wariMl: 270, sugarKcal100: 0,
+            count: heavy ? 2 : 1 + Math.floor(rnd() * 2)
+          });
+        }
+        if (heavy && rnd() < 0.4) {
+          day.drinks.push({ typeId: 'whisky', label: 'ハイボール', abv: 40, baseMl: 45, wariId: 'soda', wariMl: 135, sugarKcal100: 0, count: 2 });
+        }
+        day.spend = 800 + Math.floor(rnd() * 2200);
+        day.reasons = [];
+        if (rnd() < 0.7) day.reasons.push('habit');
+        if (rnd() < 0.4) day.reasons.push('sleep');
+        if (rnd() < 0.35) day.reasons.push('stress');
+        if (heavy) day.reasons.push('social');
+      } else {
+        day.spend = 0;
+        day.reasons = [];
+      }
+
+      // 翌朝（この日の朝＝前日の夜の結果）
+      var prev = Store.day(C.addDays(ymd, -1));
+      var prevG = C.dayTotals(prev.drinks).alcohol;
+      var nightcap = (prev.reasons || []).indexOf('sleep') >= 0;
+
+      var latency = prevG > 0 ? (nightcap ? 5 : 15) : (rnd() < 0.5 ? 30 : 60);
+      var awake = prevG > 40 ? 2 + Math.round(rnd()) : prevG > 15 ? 1 + Math.round(rnd() * 0.6) : Math.round(rnd() * 0.5);
+      var toilet = prevG > 40 ? 2 : prevG > 15 ? 1 : Math.round(rnd() * 0.4);
+      var refresh = prevG > 60 ? 1 : prevG > 35 ? 2 : prevG > 10 ? 3 : 4;
+      if (rnd() < 0.25) refresh = Math.max(1, Math.min(5, refresh + (rnd() < 0.5 ? -1 : 1)));
+
+      var bedH = 23 + (rnd() < 0.4 ? 1 : 0);
+      day.morning = {
+        sleep: {
+          bed: ('0' + (bedH % 24)).slice(-2) + ':' + (rnd() < 0.5 ? '00' : '30'),
+          wake: (rnd() < 0.5 ? '06:30' : '07:00'),
+          latency: latency, awake: awake, refresh: refresh, toilet: toilet,
+          worry: prevG === 0 ? 2 : 1, worryNote: '', nightcap: nightcap
+        },
+        damage: {
+          headache: prevG > 55 ? 2 : prevG > 30 ? 1 : 0,
+          nausea: prevG > 65 ? 2 : prevG > 40 ? 1 : 0,
+          fatigue: prevG > 45 ? 2 : prevG > 20 ? 1 : 0,
+          thirst: prevG > 35 ? 2 : prevG > 12 ? 1 : 0,
+          palpitation: prevG > 55 ? 1 : 0,
+          diarrhea: prevG > 60 ? 1 : 0,
+          blackout: prevG > 85 ? 2 : prevG > 70 ? 1 : 0,
+          motivation: prevG > 45 ? 1 : 0,
+          irritated: prevG > 50 ? 1 : 0,
+          swelling: prevG > 40 ? 1 : 0
+        },
+        memo: ''
+      };
+    }
+    Store.data.ui.seenIntro = true;
+    Store.save();
+  }
+
+  /* ============================================================
+     起動
+     ============================================================ */
+  function render() {
+    document.querySelectorAll('#tabbar button').forEach(function (b) {
+      b.classList.toggle('on', b.getAttribute('data-view') === state.view);
+    });
+    var p30 = S.period(30);
+    document.getElementById('appbar-sub').innerHTML =
+      '30日平均 <b style="color:' + C.band(p30.dailyAvg).color + '">' + fmt(p30.dailyAvg, 1) + 'g</b>／日<br>休肝日 ' + p30.restDays + '日';
+
+    if (state.view === 'home') viewHome();
+    else if (state.view === 'calendar') viewCalendar();
+    else if (state.view === 'body') viewBody();
+    else if (state.view === 'stats') viewStats();
+    else viewSettings();
+  }
+
+  Store.load();
+  render();
+
+  if (!Store.data.ui.seenIntro && !Object.keys(Store.data.days).length) {
+    Store.data.ui.seenIntro = true;
+    Store.save();
+    setTimeout(function () {
+      var ok = confirm(
+        'はじめまして。\n\n' +
+        'このアプリは、飲んだお酒と翌朝のからだを突き合わせて、' +
+        '「お酒が自分に何をしているか」を数字で見るための記録帳です。\n\n' +
+        '動きを先に見たい場合は、45日ぶんのサンプル記録を入れられます。入れますか？\n' +
+        '（設定画面からいつでも消せます）');
+      if (ok) { makeSample(); render(); }
+    }, 400);
+  }
+
+  root.YOILOG = { state: state, render: render };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+
+</body>
+</html>

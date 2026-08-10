@@ -1,0 +1,20 @@
+{
+  "name": "酔いログ — 今日の一杯が、明日のからだに何をするか",
+  "short_name": "酔いログ",
+  "description": "毎日の晩酌と翌朝のからだ・眠りを記録して突き合わせる、飲酒記録アプリ。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#14171d",
+  "theme_color": "#14171d",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

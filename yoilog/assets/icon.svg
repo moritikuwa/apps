@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#14171d"/>
+  <!-- ジョッキ -->
+  <path d="M150 150 h150 a14 14 0 0 1 14 14 l-14 200 a24 24 0 0 1 -24 22 h-102 a24 24 0 0 1 -24 -22 l-14 -200 a14 14 0 0 1 14 -14 z" fill="#2a3140" stroke="#e0b341" stroke-width="12"/>
+  <path d="M156 232 h140 l-11 130 a16 16 0 0 1 -16 15 h-86 a16 16 0 0 1 -16 -15 z" fill="#e0b341" opacity="0.9"/>
+  <path d="M318 190 h34 a44 44 0 0 1 44 44 v42 a44 44 0 0 1 -44 44 h-26" fill="none" stroke="#e0b341" stroke-width="12" stroke-linecap="round"/>
+  <!-- 心拍の線（からだへの影響） -->
+  <path d="M118 424 h58 l18 -42 22 84 20 -60 16 30 h122" fill="none" stroke="#d94a4a" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
