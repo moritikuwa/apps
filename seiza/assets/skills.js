@@ -24,12 +24,18 @@
   var SZ = root.SZ || (root.SZ = {});
 
   SZ.CONSTELLATIONS = [
-    { id: 'taiwa',   name: 'たいわ座', label: '対話',   color: '#6fb6ff', desc: '頼み方で結果が変わる' },
-    { id: 'kioku',   name: 'きおく座', label: '記憶',   color: '#a78bfa', desc: '毎回言わなくていい形にする' },
-    { id: 'waza',    name: 'わざ座',   label: '技',     color: '#f0a05a', desc: '自分の型を再現できる形にする' },
-    { id: 'jisou',   name: 'じそう座', label: '自走',   color: '#5fd4a8', desc: '見ていなくても進む' },
-    { id: 'renketsu',name: 'れんけつ座', label: '連結', color: '#f57ea8', desc: '外の道具まで手を伸ばす' },
-    { id: 'jitsumu', name: 'じつむ座', label: '実務',   color: '#e0b341', desc: '商売の数字に変える' }
+    { id: 'taiwa',   name: 'たいわ座', label: '対話',   color: '#6fb6ff', desc: '頼み方で結果が変わる',
+      advice: '頼み方の土台がまだ薄い。ここが薄いまま上の技を足しても、効きが半分になる。' },
+    { id: 'kioku',   name: 'きおく座', label: '記憶',   color: '#a78bfa', desc: '毎回言わなくていい形にする',
+      advice: '毎回同じことを打ち直している時間が、まだ残っている。ここは丸ごと消せる。' },
+    { id: 'waza',    name: 'わざ座',   label: '技',     color: '#f0a05a', desc: '自分の型を再現できる形にする',
+      advice: '自分の型がまだ頭の中にある。外に出すまで、それは増えないし人にも渡せない。' },
+    { id: 'jisou',   name: 'じそう座', label: '自走',   color: '#5fd4a8', desc: '見ていなくても進む',
+      advice: '見ていないと止まる状態。ここを越えると、寝ている間が味方になる。' },
+    { id: 'renketsu',name: 'れんけつ座', label: '連結', color: '#f57ea8', desc: '外の道具まで手を伸ばす',
+      advice: 'AIが会話の中で止まっている。外の道具に繋いだ瞬間、任せられる仕事が一段変わる。' },
+    { id: 'jitsumu', name: 'じつむ座', label: '実務',   color: '#e0b341', desc: '商売の数字に変える',
+      advice: '使えてはいるが、まだ商売の数字になっていない。ここが最後の壁で、一番お金に近い。' }
   ];
 
   /* 星の状態（0〜4） */

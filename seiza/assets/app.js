@@ -27,6 +27,83 @@
     setTimeout(function () { t.remove(); }, 2200);
   }
 
+  /* ============================================================
+     手応え
+     星を取った瞬間に、必ず何かが返る。
+     数字が静かに変わるだけでは、達成感は出ない。
+     ============================================================ */
+  var pending = null, pendingTimer = null;
+
+  function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+
+  /* 状態を変える窓口。ここを通せば必ず手応えが返る */
+  function applyState(id, v) {
+    var from = store.state(id);
+    var beforeLv = calc.level().lv, beforeRank = calc.rank();
+    var openBefore = {};
+    SZ.SKILLS.forEach(function (s) { openBefore[s.id] = calc.isOpen(s); });
+
+    store.setState(id, v);
+    renderHud();
+    if (v <= from) return;                       /* 下げたときは祝わない */
+
+    /* この一手で新しく開いた星 */
+    var unlocked = SZ.SKILLS.filter(function (s) {
+      return !openBefore[s.id] && calc.isOpen(s) && store.state(s.id) < SZ.OPEN;
+    });
+
+    buzz(v >= SZ.OPEN ? [8, 34, 16] : 12);
+
+    if (!pending) pending = { lv: beforeLv, rank: beforeRank, unlocked: {}, flash: {}, star: 0 };
+    unlocked.forEach(function (s) { pending.unlocked[s.id] = s; pending.flash[s.id] = 1; });
+    pending.flash[id] = 1;
+    if (v === 4) { pending.star++; pending.lastStar = SZ.byId[id]; }
+
+    /* まとめて入力しているときに何度も出さないよう、手が止まってから1回だけ出す */
+    clearTimeout(pendingTimer);
+    pendingTimer = setTimeout(showCheer, 850);
+  }
+
+  function showCheer() {
+    var p = pending; pending = null;
+    if (!p) return;
+
+    if (view === 'map') { SZ.map.draw(); SZ.map.flash(Object.keys(p.flash)); }
+
+    var lv = calc.level(), rank = calc.rank();
+    var un = Object.keys(p.unlocked).map(function (k) { return p.unlocked[k]; });
+
+    if (lv.lv > p.lv || rank !== p.rank) { cheerOverlay(p, lv, rank, un); return; }
+    if (un.length) {
+      toast('⚡ ' + (un.length === 1 ? '「' + un[0].name + '」' : un.length + 'つの星') + 'が解放された');
+      return;
+    }
+    if (p.star === 1) toast('🌟 「' + p.lastStar.name + '」を教えられる水準にした');
+    else if (p.star > 1) toast('🌟 ' + p.star + 'つを教えられる水準にした');
+  }
+
+  function cheerOverlay(p, lv, rank, un) {
+    var rankUp = rank !== p.rank;
+    var gained = lv.lv - p.lv;
+    var nx = calc.nextRank();
+    var box = h('<div class="cheer' + (rankUp ? ' rankup' : '') + '">' +
+      '<div class="cheer-in">' +
+        '<span class="ring r1"></span><span class="ring r2"></span><span class="ring r3"></span>' +
+        '<div class="ck">' + (rankUp ? '称号が変わった' : 'LEVEL UP') + '</div>' +
+        '<div class="cn">Lv.<b>' + lv.lv + '</b>' +
+          (gained > 1 ? '<i>+' + gained + '</i>' : '') + '</div>' +
+        (rankUp ? '<div class="cr">' + esc(rank) + '</div>' : '') +
+        (un.length ? '<div class="cs">⚡ ' + un.length + 'つの星が解放された</div>' : '') +
+        (nx ? '<div class="cnx">次の称号〈' + esc(nx.name) + '〉まで あと' + nx.need + '点</div>' : '') +
+      '</div></div>');
+    document.body.appendChild(box);
+    requestAnimationFrame(function () { box.classList.add('go'); });
+    var close = function () { box.classList.remove('go'); setTimeout(function () { box.remove(); }, 260); };
+    box.onclick = close;
+    setTimeout(close, rankUp ? 3200 : 2400);
+    buzz(rankUp ? [10, 50, 10, 50, 10, 50, 30] : [10, 50, 20]);
+  }
+
   /* ── 上のバー（レベル） ── */
   function renderHud() {
     var lv = calc.level();
@@ -148,12 +225,48 @@
     var params = calc.params();
     var lv = calc.level();
 
-    var html = '<div class="card statcard">' + radar(params) +
+    var nx = calc.nextRank();
+    var rem = calc.remaining();
+    var lit = calc.litToday();
+    var weak = calc.weakest();
+    var wc = cOf(weak.id);
+    var strong = params.slice().sort(function (a, b) { return b.ratio - a.ratio; })[0];
+
+    /* ── いまのあなた ── */
+    var html = '<div class="card me">' +
+      '<div class="me-rank">' + esc(calc.rank()) + '</div>' +
+      '<div class="me-nums">' +
+        '<span><b>Lv.' + lv.lv + '</b></span>' +
+        '<span><b>' + calc.percent() + '%</b>習得</span>' +
+        '<span><b>🌟' + calc.taught() + '</b>教えられる</span>' +
+      '</div>';
+    if (nx) {
+      /* いまの称号から次の称号までの、どこまで来たか */
+      var p = calc.percent(), lo = 0, hi = 100;
+      SZ.RANKS.forEach(function (r) { if (p >= r.min) lo = r.min; if (r.name === nx.name) hi = r.min; });
+      var prog = hi > lo ? Math.round((p - lo) / (hi - lo) * 100) : 0;
+      html += '<div class="me-next">次の称号 <b>〈' + esc(nx.name) + '〉</b> まで あと <b>' + nx.need + '点</b>' +
+        '<span class="me-hint">（星' + Math.ceil(nx.need / 4) + 'つ分くらい）</span></div>' +
+        '<div class="me-bar"><i style="width:' + prog + '%"></i></div>';
+    } else {
+      html += '<div class="me-next">すべての称号を取り切りました。</div>';
+    }
+    if (lit) html += '<div class="me-today">今日、<b>' + lit + '個</b>の星を灯した</div>';
+    html += '</div>';
+
+    /* ── 見立て ── */
+    html += '<div class="card statcard">' + radar(params) +
       '<div class="statnums">' +
-        '<div><b>Lv.' + lv.lv + '</b><span>' + esc(calc.rank()) + '</span></div>' +
-        '<div><b>' + calc.percent() + '%</b><span>習得率</span></div>' +
-        '<div><b>' + lv.got + '<i>/' + lv.max + '</i></b><span>星の点</span></div>' +
+        '<div><b>' + esc(strong.name) + '</b><span>一番強い　' + Math.round(strong.ratio * 100) + '%</span></div>' +
+        '<div><b style="color:' + weak.color + '">' + esc(weak.name) + '</b><span>一番うすい　' + Math.round(weak.ratio * 100) + '%</span></div>' +
+        '<div><b>' + rem.all + '<i>個</i></b><span>★に届いていない</span></div>' +
       '</div></div>';
+
+    html += '<div class="card verdict"><h2 class="sec2">👁 見立て</h2>' +
+      '<p>' + esc(wc.advice || '') + '</p>' +
+      '<p class="note">★に届いていない星は ' + rem.all + '個（初級' + rem.t[0] + '・中級' + rem.t[1] + '・上級' + rem.t[2] + '）。' +
+      'このうち今すぐ取れるのは ' + calc.nextMoves().length + '個です。</p>' +
+      '<div class="btns"><button id="gonext">⚡ 次の一手を見る</button></div></div>';
 
     /* 溜まった「改善」は、そのまま CLAUDE.md や技に書き足す材料になる */
     var fixes = store.allFixes();
@@ -195,6 +308,9 @@
 
     app.innerHTML = html;
 
+    var gn = document.getElementById('gonext');
+    if (gn) gn.onclick = function () { go('next'); };
+
     var cf = document.getElementById('copyfix');
     if (cf) cf.onclick = function () {
       copyText(fixes.map(function (f) {
@@ -209,8 +325,7 @@
       var b = e.target.closest('[data-set]');
       if (!b) return;
       var y = app.scrollTop || window.scrollY;
-      store.setState(b.dataset.set, +b.dataset.v);
-      renderHud();
+      applyState(b.dataset.set, +b.dataset.v);
       viewStatus();
       window.scrollTo(0, y);
     };
@@ -348,8 +463,7 @@
 
     sheetHost.querySelectorAll('.stb').forEach(function (b) {
       b.onclick = function () {
-        store.setState(s.id, +b.dataset.v);
-        renderHud();
+        applyState(s.id, +b.dataset.v);
         if (view === 'map') SZ.map.draw();
         if (view === 'next') { closeSheet(); viewNext(); return; }
         if (view === 'status') { closeSheet(); viewStatus(); return; }
@@ -374,8 +488,7 @@
       if (!rec.did && !rec.saw && !rec.fix) { toast('何か1つは書いてください'); return; }
       store.addRun(s.id, rec);
       /* 一度でも回したなら、少なくとも「やったことがある」まで進める */
-      if (store.state(s.id) < 2) store.setState(s.id, 2);
-      renderHud();
+      if (store.state(s.id) < 2) applyState(s.id, 2);
       if (view === 'map') SZ.map.draw();
       openSheet(s.id);
       toast('記録しました');

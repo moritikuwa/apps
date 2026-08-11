@@ -102,6 +102,37 @@
       return r.name;
     },
 
+    /* 次の称号まであと何点か（ここが一番の燃料になる） */
+    nextRank: function () {
+      var p = this.percent(), t = this.total(), nxt = null;
+      SZ.RANKS.forEach(function (x) { if (x.min > p && !nxt) nxt = x; });
+      if (!nxt) return null;
+      return { name: nxt.name, need: Math.max(1, Math.ceil(nxt.min / 100 * t.max) - t.got) };
+    },
+
+    /* ★に届いていない星の数（段ごと） */
+    remaining: function () {
+      var out = { all: 0, t: [0, 0, 0] };
+      SZ.SKILLS.forEach(function (s) {
+        if (SZ.store.state(s.id) < OPEN) { out.all++; out.t[s.tier - 1]++; }
+      });
+      return out;
+    },
+
+    /* 今日★以上にした星の数 */
+    litToday: function () {
+      var t = SZ.today(), seen = {};
+      SZ.store.data.log.forEach(function (e) {
+        if (e.at === t && SZ.store.state(e.id) >= OPEN) seen[e.id] = 1;
+      });
+      return Object.keys(seen).length;
+    },
+
+    /* 🌟 人に教えられる星の数 */
+    taught: function () {
+      return SZ.SKILLS.filter(function (s) { return SZ.store.state(s.id) === 4; }).length;
+    },
+
     /* 自分の段（初級/中級/上級）— 説明をどこまで出すかの判断に使う */
     grade: function () {
       var p = this.percent();
