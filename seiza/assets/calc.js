@@ -18,12 +18,14 @@
      星座＝扇（6等分）、段＝輪（内から 初級・中級・上級）。
      技を足せば自動でその位置に入ります。座標を書く必要はありません。
      ============================================================ */
-  SZ.RING = [142, 230, 306];        // 初級・中級・上級 の半径
-  SZ.OUTER = 336;                   // 一番外の輪
-  SZ.RING_LABEL_R = 372;            // 星座名を置く半径
+  SZ.RING = [140, 232, 322];        // 初級・中級・上級 の半径
+  SZ.OUTER = 356;                   // 一番外の輪
+  SZ.RING_LABEL_R = 390;            // 星座名を置く半径
   SZ.CENTER = { x: SZ.MAP.w / 2, y: SZ.MAP.h / 2 };
 
-  SZ.BADGE = [24, 25.5, 27];              // 段ごとの札の大きさ（半径）
+  SZ.BADGE = [22, 23, 24];          // 段ごとの札の大きさ（半径）
+
+  var D2R = Math.PI / 180;
 
   SZ.layout = function () {
     var C = SZ.CENTER, sectors = SZ.CONSTELLATIONS.length;
@@ -33,20 +35,35 @@
       c.angle = mid;
       [1, 2, 3].forEach(function (tier) {
         var list = SZ.SKILLS.filter(function (s) { return s.const === c.id && s.tier === tier; });
-        var R = SZ.RING[tier - 1];
-        /* 札がぶつからない間隔を、札の大きさと半径から逆算する。
-           技が増えても勝手に詰まらないよう、ここは固定値にしない。 */
-        var step = (SZ.BADGE[tier - 1] * 2 + 12) / R * 180 / Math.PI;
+        if (!list.length) return;
+        var R = SZ.RING[tier - 1], b = SZ.BADGE[tier - 1];
+        var need = b * 2 + 8;               // 隣の札とあけたい間合い
+
+        /* 扇の中でどれだけ角度を使うか。技が増えても詰まらないよう、
+           必要な間合いから逆算し、扇の幅で頭打ちにする。 */
+        var step = need / R / D2R;
         var use = list.length > 1
           ? Math.max(span * 0.30, Math.min(span * 0.88, step * (list.length - 1)))
           : 0;
+
+        /* 角度だけで間合いが足りないぶんは、内外に互い違いにずらして稼ぐ。
+           ずらし幅は隣の輪にめり込まない範囲まで。 */
+        var off = 0;
+        if (list.length > 2) {
+          var chord = 2 * R * Math.sin((use / (list.length - 1)) / 2 * D2R);
+          if (chord < need) {
+            var want = Math.sqrt(need * need - chord * chord) / 2 + 2;
+            var inner = tier > 1 ? SZ.RING[tier - 2] + SZ.BADGE[tier - 2] : 74;
+            var outer = tier < 3 ? SZ.RING[tier] - SZ.BADGE[tier] : SZ.OUTER + b;
+            off = Math.max(0, Math.min(want, R - b - inner - 4, outer - b - R - 4));
+          }
+        }
+
         list.forEach(function (s, i) {
           var a = list.length === 1 ? mid : mid - use / 2 + use * i / (list.length - 1);
-          /* 3つ以上並ぶ段は、内外に互い違いにずらして間を稼ぐ */
-          var r = R + (list.length > 2 ? (i % 2 ? 17 : -17) : 0);
-          var rad = a * Math.PI / 180;
-          s.x = C.x + Math.cos(rad) * r;
-          s.y = C.y + Math.sin(rad) * r;
+          var r = R + (i % 2 ? off : -off);
+          s.x = C.x + Math.cos(a * D2R) * r;
+          s.y = C.y + Math.sin(a * D2R) * r;
           s.angle = a;
         });
       });
@@ -126,6 +143,11 @@
         if (e.at === t && SZ.store.state(e.id) >= OPEN) seen[e.id] = 1;
       });
       return Object.keys(seen).length;
+    },
+
+    /* 後から増えて、まだ見ていない星 */
+    newSkills: function () {
+      return SZ.SKILLS.filter(function (s) { return SZ.store.isNew(s); });
     },
 
     /* 🌟 人に教えられる星の数 */

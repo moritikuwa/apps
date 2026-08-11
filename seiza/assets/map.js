@@ -310,6 +310,15 @@
         ico.textContent = s.icon || '✦';
         node.appendChild(ico);
 
+        /* 後から増えて、まだ見ていない星 */
+        if (st.isNew(s)) {
+          var nb = el('circle', {
+            cx: s.x + r * 0.72, cy: s.y - r * 0.72, r: 6.5,
+            fill: '#5fd4a8', stroke: '#0a0d16', 'stroke-width': 1.6, class: 'pulse'
+          });
+          node.appendChild(nb);
+        }
+
         var mk = el('text', {
           x: s.x, y: s.y + r + 11, 'text-anchor': 'middle', 'dominant-baseline': 'central',
           class: 'smark', fill: v === 4 ? '#ffd979' : (v >= 1 ? col : '#7c88a0'),

@@ -196,9 +196,23 @@
     var almost = calc.almost(3);
     var weak = calc.weakest();
 
+    var html = '';
+
+    /* ── 🆕 後から増えた星。増えたことを損ではなく発見として見せる ── */
+    var fresh = calc.newSkills();
+    if (fresh.length) {
+      html += '<div class="fresh"><div class="fresh-k">🆕 星が' + fresh.length + 'つ増えました</div>' +
+        '<p class="note">空が広がったぶん、習得率の分母も増えています。数字が下がっても腕は落ちていません。</p>' +
+        '<div class="fresh-l">' + fresh.map(function (s) {
+          var c = cOf(s.const);
+          return '<button class="chip" data-id="' + s.id + '" style="border-color:' + c.color + '55">' +
+            (s.icon || '✦') + ' ' + esc(s.name) + '</button>';
+        }).join('') + '</div>' +
+        '<div class="btns"><button id="seenall">ぜんぶ見た</button></div></div>';
+    }
+
     /* ── 今日の一手：毎日ひとつだけ。迷う時間をなくす ── */
     var d = calc.daily();
-    var html = '';
     if (d) {
       var dc = cOf(d.skill.const);
       html += '<div class="today' + (d.done ? ' done' : '') + '">' +
@@ -248,8 +262,16 @@
     }
 
     app.innerHTML = html;
+
+    var sa = document.getElementById('seenall');
+    if (sa) sa.onclick = function () {
+      store.markSeen(fresh.map(function (s) { return s.id; }));
+      if (view === 'map') SZ.map.draw();
+      viewNext();
+    };
+
     app.onclick = function (e) {
-      var b = e.target.closest('.move, .today-b'); if (!b) return;
+      var b = e.target.closest('.move, .today-b, .fresh .chip'); if (!b) return;
       openSheet(b.dataset.id);
     };
   }
@@ -460,6 +482,8 @@
   function openSheet(id) {
     var s = SZ.byId[id];
     if (!s) return;
+    var wasNew = store.isNew(s);
+    if (wasNew) store.markSeen(s.id);
     var c = cOf(s.const);
     var v = store.state(s.id);
     var status = calc.status(s);
@@ -475,6 +499,7 @@
       '<div class="sheet-in">' +
       '<div class="sh-head">' +
         '<span class="sh-const" style="color:' + c.color + '">' + esc(c.name) + '・' + TIERNAME[s.tier] + '</span>' +
+        (wasNew ? '<span class="bd fresh-bd">🆕 新しい星</span>' : '') +
         badge +
       '</div>' +
       '<h2 class="sh-title">' + esc(s.name) + '</h2>';

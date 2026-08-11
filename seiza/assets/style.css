@@ -231,6 +231,16 @@ button.wide.sub { border-color:rgba(95,212,168,.35); background:rgba(95,212,168,
 #hud-fire.wait { color:#9aa5b5; filter:saturate(.35); }
 #hud-fire.off { color:#4e5a6d; filter:grayscale(1); opacity:.55; }
 
+/* ── 後から増えた星 ── */
+.fresh {
+  background:linear-gradient(180deg,rgba(95,212,168,.14),rgba(95,212,168,.04));
+  border:1px solid rgba(95,212,168,.32); border-radius:16px; padding:14px; margin:2px 0 14px;
+}
+.fresh-k { font-size:13.5px; font-weight:800; color:#7fe3bd; margin-bottom:6px; }
+.fresh-l { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+.fresh-l .chip { background:rgba(10,13,22,.5); border-width:1px; }
+.bd.fresh-bd { color:#7fe3bd; border-color:rgba(95,212,168,.5); background:rgba(95,212,168,.14); }
+
 /* ── 今日の一手 ── */
 .today {
   background:linear-gradient(180deg,rgba(224,179,65,.16),rgba(224,179,65,.05));
