@@ -155,6 +155,21 @@
         '<div><b>' + lv.got + '<i>/' + lv.max + '</i></b><span>星の点</span></div>' +
       '</div></div>';
 
+    /* 溜まった「改善」は、そのまま CLAUDE.md や技に書き足す材料になる */
+    var fixes = store.allFixes();
+    if (fixes.length) {
+      html += '<div class="card"><h2 class="sec2">♻️ 改善メモ　<small>' + fixes.length + '件</small></h2>' +
+        '<p class="note">やってみて「次はこうする」と気づいたこと。<b>ここに溜まった分だけ、同じ失敗が消えます。</b>' +
+        'CLAUDE.md か技に書き足してください。</p>' +
+        '<div class="fixes">' + fixes.slice(0, 12).map(function (f) {
+          var sk = SZ.byId[f.id];
+          return '<div class="fx"><span class="fxd">' + esc(f.at) + '</span>' +
+            '<button class="fxn" data-open="' + f.id + '">' + esc(sk ? sk.name : f.id) + '</button>' +
+            '<p>' + esc(f.fix) + '</p></div>';
+        }).join('') + '</div>' +
+        '<div class="btns"><button id="copyfix">まとめてコピー</button></div></div>';
+    }
+
     html += '<p class="lead">下の一覧で、いまの自分に当てはまるものを押してください。<br>' +
       '正直に押すほど「次の一手」が当たります。</p>';
 
@@ -179,6 +194,14 @@
     });
 
     app.innerHTML = html;
+
+    var cf = document.getElementById('copyfix');
+    if (cf) cf.onclick = function () {
+      copyText(fixes.map(function (f) {
+        var sk = SZ.byId[f.id];
+        return '- 【' + (sk ? sk.name : f.id) + '】' + f.fix + '（' + f.at + '）';
+      }).join('\n'));
+    };
 
     app.onclick = function (e) {
       var o = e.target.closest('[data-open]');
@@ -240,8 +263,9 @@
     var status = calc.status(s);
     var grade = calc.grade();
 
-    var badge = status === 'locked' ? '<span class="bd lock">🔒 まだ早い</span>'
-      : status === 'done' ? '<span class="bd done">★ 取得ずみ</span>'
+    var badge = status === 'done' ? '<span class="bd done">★ 取得ずみ</span>'
+      : status === 'locked' ? '<span class="bd lock">🔒 まだ早い</span>'
+      : status === 'doing' ? '<span class="bd doing">🔥 取りかかり中</span>'
       : '<span class="bd ready">⚡ 今すぐ取れる</span>';
 
     var html = '<div class="sheet-bg"></div><div class="sheet">' +
@@ -262,10 +286,38 @@
         '</div><p class="note">順番を飛ばすと、たいてい遠回りになります。</p></div>';
     }
 
+    var runs = store.runs(s.id);
+
     html += '<div class="blk"><b>❶ なぜ今これなのか</b><p>' + esc(s.why) + '</p></div>' +
-      '<div class="blk core"><b>❷ 考え方の芯</b><p>' + esc(s.core) + '</p></div>' +
-      '<div class="blk"><b>❸ 小さく1回やる</b><p>' + esc(s.do) + '</p></div>' +
-      '<div class="blk say"><b>❹ 自分の言葉で言えたら光る</b><p>' + esc(s.say) + '</p>' +
+      '<div class="blk core"><b>❷ 考え方の芯</b><p>' + esc(s.core) + '</p></div>';
+
+    /* ❸ 実行 → 確認 → 改善。ここを回した回数がそのまま身についた量になる */
+    html += '<div class="blk try"><b>❸ やってみる' +
+      (runs.length ? '　<span class="cnt">' + runs.length + '回まわした</span>' : '') + '</b>' +
+      '<p class="todo">' + esc(s.do) + '</p>' +
+      '<div class="loop">' +
+        '<label><span class="lb run">実行</span>何をやったか' +
+          '<textarea data-f="did" rows="2" placeholder="例：見積の依頼文に完成形を先に書いて投げた"></textarea></label>' +
+        '<label><span class="lb chk">確認</span>どうなったか' +
+          '<textarea data-f="saw" rows="2" placeholder="例：往復が4回から1回に減った。ただし単価の根拠が抜けていた"></textarea></label>' +
+        '<label><span class="lb fix">改善</span>次はこう変える' +
+          '<textarea data-f="fix" rows="2" placeholder="例：完成形に「単価の根拠を必ず付ける」を足す"></textarea></label>' +
+      '</div>' +
+      '<button id="run-save" class="wide sub">この1回を記録する</button>';
+
+    if (runs.length) {
+      html += '<div class="runs">' + runs.map(function (r, i) {
+        return '<div class="runrec"><div class="rh">' + esc(r.at) +
+          '<button class="del" data-del="' + i + '" title="消す">×</button></div>' +
+          (r.did ? '<p><span class="lb run">実行</span>' + esc(r.did) + '</p>' : '') +
+          (r.saw ? '<p><span class="lb chk">確認</span>' + esc(r.saw) + '</p>' : '') +
+          (r.fix ? '<p><span class="lb fix">改善</span>' + esc(r.fix) + '</p>' : '') +
+          '</div>';
+      }).join('') + '</div>';
+    }
+    html += '</div>';
+
+    html += '<div class="blk say"><b>❹ 自分の言葉で言えたら光る</b><p>' + esc(s.say) + '</p>' +
       '<button id="grade-btn" class="wide">🌟 話して採点してもらう（文をコピー）</button></div>';
 
     if (s.terms && s.terms.length) {
@@ -315,6 +367,26 @@
     document.getElementById('grade-btn').onclick = function () {
       copyGradePrompt(s);
     };
+
+    document.getElementById('run-save').onclick = function () {
+      var rec = {};
+      sheetHost.querySelectorAll('.loop textarea').forEach(function (t) { rec[t.dataset.f] = t.value.trim(); });
+      if (!rec.did && !rec.saw && !rec.fix) { toast('何か1つは書いてください'); return; }
+      store.addRun(s.id, rec);
+      /* 一度でも回したなら、少なくとも「やったことがある」まで進める */
+      if (store.state(s.id) < 2) store.setState(s.id, 2);
+      renderHud();
+      if (view === 'map') SZ.map.draw();
+      openSheet(s.id);
+      toast('記録しました');
+    };
+
+    sheetHost.querySelectorAll('[data-del]').forEach(function (b) {
+      b.onclick = function () {
+        store.delRun(s.id, +b.dataset.del);
+        openSheet(s.id);
+      };
+    });
   }
 
   function closeSheet() {
@@ -322,9 +394,26 @@
     sheetHost.innerHTML = '';
   }
 
+  /* 文字をクリップボードへ */
+  function copyText(text, msg) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    if (!ok && navigator.clipboard) { navigator.clipboard.writeText(text); ok = true; }
+    ta.remove();
+    toast(ok ? (msg || 'コピーしました') : 'コピーできませんでした');
+    return ok;
+  }
+
   /* 「話して採点してもらう」ための文を作ってコピーする */
   function copyGradePrompt(s) {
     var c = cOf(s.const);
+    var runs = store.runs(s.id);
     var text =
       '「' + s.name + '」という技を、私が本当に分かっているか採点してください。\n' +
       '（' + c.name + '／' + TIERNAME[s.tier] + '）\n\n' +
@@ -336,21 +425,22 @@
       '1. 私の説明で合っている所\n' +
       '2. 抜けている所・間違っている所\n' +
       '3. 「人に教えられる」水準（🌟）に届いているか。届いていなければ、あと何が要るか\n' +
-      '甘く採点しないでください。分かったつもりのまま先に進むのが一番の遠回りなので。\n\n' +
-      '■ 私の説明\n' +
-      '（ここに自分の言葉で書いてから送ってください）\n';
+      '甘く採点しないでください。分かったつもりのまま先に進むのが一番の遠回りなので。\n\n';
 
-    var ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    var ok = false;
-    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
-    if (!ok && navigator.clipboard) { navigator.clipboard.writeText(text); ok = true; }
-    ta.remove();
-    toast(ok ? 'コピーしました。Claudeに貼って、続きに自分の説明を書いてください' : 'コピーできませんでした');
+    if (runs.length) {
+      text += '■ 私が実際にやった記録（' + runs.length + '回）\n' +
+        runs.map(function (r) {
+          return '・' + r.at +
+            (r.did ? '\n　実行：' + r.did : '') +
+            (r.saw ? '\n　確認：' + r.saw : '') +
+            (r.fix ? '\n　改善：' + r.fix : '');
+        }).join('\n') +
+        '\nこの記録も踏まえて、机上の理解で止まっていないかも見てください。\n\n';
+    }
+
+    text += '■ 私の説明\n（ここに自分の言葉で書いてから送ってください）\n';
+
+    copyText(text, 'コピーしました。Claudeに貼って、続きに自分の説明を書いてください');
   }
 
   /* ── 切り替え ── */

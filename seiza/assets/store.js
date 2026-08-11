@@ -10,7 +10,8 @@
 
   var defaults = {
     states: {},          // skillId -> 0..4
-    log: [],             // { at:'YYYY-MM-DD', id, from, to }
+    log: [],             // { at:'YYYY-MM-DD', id, from, to }   状態が変わった記録
+    runs: {},            // skillId -> [{ at, did, saw, fix }]  実行→確認→改善の記録
     ui: { seenIntro: false, view: 'map' }
   };
 
@@ -32,6 +33,7 @@
           this.data = {
             states: p.states || {},
             log: p.log || [],
+            runs: p.runs || {},
             ui: Object.assign(clone(defaults.ui), p.ui || {})
           };
         }
@@ -61,6 +63,39 @@
       this.save();
     },
 
+    /* ── 実行→確認→改善の記録 ── */
+    runs: function (id) { return this.data.runs[id] || []; },
+
+    addRun: function (id, rec) {
+      if (!this.data.runs[id]) this.data.runs[id] = [];
+      this.data.runs[id].unshift({
+        at: today(),
+        did: (rec.did || '').slice(0, 600),
+        saw: (rec.saw || '').slice(0, 600),
+        fix: (rec.fix || '').slice(0, 600)
+      });
+      this.save();
+    },
+
+    delRun: function (id, i) {
+      var a = this.data.runs[id];
+      if (!a || !a[i]) return;
+      a.splice(i, 1);
+      if (!a.length) delete this.data.runs[id];
+      this.save();
+    },
+
+    /* 改善だけを新しい順に集める（何を学び直したかの一覧） */
+    allFixes: function () {
+      var out = [], self = this;
+      Object.keys(this.data.runs).forEach(function (id) {
+        self.data.runs[id].forEach(function (r) {
+          if (r.fix) out.push({ id: id, at: r.at, fix: r.fix });
+        });
+      });
+      return out.sort(function (a, b) { return a.at < b.at ? 1 : -1; });
+    },
+
     /* ── 書き出し・読み込み ── */
     exportText: function () {
       return JSON.stringify({ v: 1, savedAt: today(), data: this.data }, null, 2);
@@ -73,6 +108,7 @@
       this.data = {
         states: d.states || {},
         log: d.log || [],
+        runs: d.runs || {},
         ui: Object.assign(clone(defaults.ui), d.ui || {})
       };
       this.save();

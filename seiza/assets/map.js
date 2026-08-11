@@ -70,14 +70,8 @@
       else this.apply();
     },
 
-    /* 最初に開いたとき：星の名前が読める大きさで、一番上（たいわ座）から */
-    initial: function () {
-      var w = this.host.clientWidth;
-      this.k = Math.max(0.7, Math.min(1.15, w / SZ.MAP.w));
-      this.tx = (w - SZ.MAP.w * this.k) / 2;
-      this.ty = 8;
-      this.apply();
-    },
+    /* 最初に開いたとき：魔法陣ぜんぶが見える大きさで */
+    initial: function () { this.fit(); },
 
     /* 全体表示：星座ぜんぶの並びを一目で見る */
     fit: function () {
@@ -112,57 +106,101 @@
       this.apply();
     },
 
-    /* ── 背景（飾り星・星雲） ── */
+    /* ── 背景（魔法陣） ── */
     drawBackdrop: function () {
       var g = this.gBack;
       g.innerHTML = '';
+      var C = SZ.CENTER, i;
       var rnd = seeded(20260811);
-      var i;
-      for (i = 0; i < 300; i++) {
-        var r = rnd() * 1.5 + 0.4;
+
+      /* 飾りの星 */
+      for (i = 0; i < 260; i++) {
         g.appendChild(el('circle', {
           cx: (rnd() * SZ.MAP.w).toFixed(1),
           cy: (rnd() * SZ.MAP.h).toFixed(1),
-          r: r.toFixed(2),
+          r: (rnd() * 1.4 + 0.4).toFixed(2),
           fill: '#ffffff',
-          opacity: (rnd() * 0.35 + 0.06).toFixed(2)
+          opacity: (rnd() * 0.32 + 0.05).toFixed(2)
         }));
       }
-      /* 星座ごとのぼんやりした光 */
-      SZ.CONSTELLATIONS.forEach(function (c) {
-        var list = SZ.SKILLS.filter(function (s) { return s.const === c.id; });
-        if (!list.length) return;
-        var cx = 0, cy = 0;
-        list.forEach(function (s) { cx += s.x; cy += s.y; });
-        cx /= list.length; cy /= list.length;
-        g.appendChild(el('circle', {
-          cx: cx, cy: cy, r: 150, fill: c.color, opacity: 0.06, filter: 'url(#softglow)'
+
+      /* 星座ごとの扇（うっすら色を敷く） */
+      var span = 360 / SZ.CONSTELLATIONS.length;
+      SZ.CONSTELLATIONS.forEach(function (c, si) {
+        var a0 = (-90 + si * span - span / 2) * Math.PI / 180;
+        var a1 = (-90 + si * span + span / 2) * Math.PI / 180;
+        var R = SZ.OUTER;
+        var d = 'M' + C.x + ' ' + C.y +
+          ' L' + (C.x + Math.cos(a0) * R) + ' ' + (C.y + Math.sin(a0) * R) +
+          ' A' + R + ' ' + R + ' 0 0 1 ' + (C.x + Math.cos(a1) * R) + ' ' + (C.y + Math.sin(a1) * R) + ' Z';
+        g.appendChild(el('path', { d: d, fill: c.color, opacity: 0.045 }));
+        g.appendChild(el('line', {
+          x1: C.x, y1: C.y, x2: C.x + Math.cos(a0) * R, y2: C.y + Math.sin(a0) * R,
+          stroke: '#c8b183', 'stroke-width': 0.8, opacity: 0.16
         }));
       });
+
+      /* 輪 */
+      [74, SZ.OUTER, SZ.OUTER - 12].forEach(function (r) {
+        g.appendChild(el('circle', { cx: C.x, cy: C.y, r: r, fill: 'none', stroke: '#c8b183', 'stroke-width': 1, opacity: 0.25 }));
+      });
+      SZ.RING.forEach(function (r) {
+        g.appendChild(el('circle', {
+          cx: C.x, cy: C.y, r: r, fill: 'none', stroke: '#c8b183',
+          'stroke-width': 0.8, 'stroke-dasharray': '3 7', opacity: 0.2
+        }));
+      });
+
+      /* 目盛りと記号 */
+      var runes = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+      for (i = 0; i < 12; i++) {
+        var a = (-90 + i * 30) * Math.PI / 180;
+        g.appendChild(el('line', {
+          x1: C.x + Math.cos(a) * (SZ.OUTER - 12), y1: C.y + Math.sin(a) * (SZ.OUTER - 12),
+          x2: C.x + Math.cos(a) * SZ.OUTER, y2: C.y + Math.sin(a) * SZ.OUTER,
+          stroke: '#c8b183', 'stroke-width': 1, opacity: 0.3
+        }));
+        var t = el('text', {
+          x: C.x + Math.cos(a) * (SZ.OUTER - 25), y: C.y + Math.sin(a) * (SZ.OUTER - 25),
+          'text-anchor': 'middle', 'dominant-baseline': 'central',
+          fill: '#c8b183', opacity: 0.22, 'font-size': 11
+        });
+        t.textContent = runes[i];
+        g.appendChild(t);
+      }
+
+      /* 段の名前（星のない、扇の境目に置く） */
+      var la = (-90 - span / 2) * Math.PI / 180;
+      ['初級', '中級', '上級'].forEach(function (nm, ti) {
+        var t = el('text', {
+          x: C.x + Math.cos(la) * (SZ.RING[ti] - 26), y: C.y + Math.sin(la) * (SZ.RING[ti] - 26),
+          'text-anchor': 'middle', 'dominant-baseline': 'central',
+          fill: '#c8b183', opacity: 0.32, 'font-size': 10, 'letter-spacing': '.2em'
+        });
+        t.textContent = nm;
+        g.appendChild(t);
+      });
+    },
+
+    /* 段ごとの札のかたち（丸・ひし形・六角） */
+    badge: function (x, y, r, tier) {
+      if (tier === 1) return el('circle', { cx: x, cy: y, r: r });
+      if (tier === 2) {
+        return el('path', { d: 'M' + x + ' ' + (y - r) + 'L' + (x + r) + ' ' + y + 'L' + x + ' ' + (y + r) + 'L' + (x - r) + ' ' + y + 'Z' });
+      }
+      var p = [];
+      for (var i = 0; i < 6; i++) {
+        var a = (-90 + i * 60) * Math.PI / 180;
+        p.push((x + Math.cos(a) * r).toFixed(1) + ' ' + (y + Math.sin(a) * r).toFixed(1));
+      }
+      return el('path', { d: 'M' + p.join('L') + 'Z' });
     },
 
     /* ── 星と線 ── */
     draw: function () {
-      var g = this.g;
+      var g = this.g, self = this;
       g.innerHTML = '';
-      var st = SZ.store, calc = SZ.calc;
-
-      /* 星座名 */
-      SZ.CONSTELLATIONS.forEach(function (c) {
-        var list = SZ.SKILLS.filter(function (s) { return s.const === c.id; });
-        if (!list.length) return;
-        var minY = Math.min.apply(null, list.map(function (s) { return s.y; }));
-        var cx = 0;
-        list.forEach(function (s) { cx += s.x; });
-        cx /= list.length;
-        var p = calc.params().filter(function (x) { return x.id === c.id; })[0];
-        var t = el('text', {
-          x: cx, y: minY - 46, 'text-anchor': 'middle',
-          class: 'cname', fill: c.color, opacity: 0.5
-        });
-        t.textContent = c.name + '  ' + Math.round(p.ratio * 100) + '%';
-        g.appendChild(t);
-      });
+      var st = SZ.store, calc = SZ.calc, C = SZ.CENTER;
 
       /* 線（前提 → 技） */
       SZ.SKILLS.forEach(function (s) {
@@ -173,72 +211,127 @@
           var cross = p.const !== s.const;
           g.appendChild(el('line', {
             x1: p.x, y1: p.y, x2: s.x, y2: s.y,
-            stroke: lit >= SZ.OPEN ? colorOf[s.const] : '#8fa0bd',
-            'stroke-width': lit >= SZ.OPEN ? 1.6 : 1,
-            'stroke-dasharray': cross ? '5 6' : '',
-            opacity: (0.1 + Math.min(lit, 3) * 0.16).toFixed(2)
+            stroke: lit >= SZ.OPEN ? colorOf[s.const] : '#9fb0cc',
+            'stroke-width': lit >= SZ.OPEN ? 1.8 : 1,
+            'stroke-dasharray': cross ? '4 6' : '',
+            opacity: (0.12 + Math.min(lit, 3) * 0.17).toFixed(2)
           }));
         });
       });
 
-      /* 星 */
+      /* 星座名（輪の外側） */
+      var params = calc.params();
+      SZ.CONSTELLATIONS.forEach(function (c) {
+        var pm = params.filter(function (x) { return x.id === c.id; })[0];
+        var a = c.angle * Math.PI / 180;
+        var x = C.x + Math.cos(a) * SZ.RING_LABEL_R;
+        var y = C.y + Math.sin(a) * SZ.RING_LABEL_R;
+        var t = el('text', {
+          x: x, y: y, 'text-anchor': 'middle', 'dominant-baseline': 'central',
+          class: 'cname', fill: c.color, opacity: 0.72
+        });
+        t.textContent = c.name;
+        g.appendChild(t);
+        var t2 = el('text', {
+          x: x, y: y + 15, 'text-anchor': 'middle', 'dominant-baseline': 'central',
+          class: 'cpct', fill: c.color, opacity: 0.5
+        });
+        t2.textContent = Math.round(pm.ratio * 100) + '%';
+        g.appendChild(t2);
+      });
+
+      /* 中心（いまのレベル） */
+      var lv = calc.level();
+      g.appendChild(el('circle', { cx: C.x, cy: C.y, r: 62, fill: '#0d111c', stroke: '#c8b183', 'stroke-width': 1.2, opacity: 0.95 }));
+      g.appendChild(el('circle', { cx: C.x, cy: C.y, r: 54, fill: 'none', stroke: '#e0b341', 'stroke-width': 0.8, opacity: 0.4 }));
+      var lvt = el('text', { x: C.x, y: C.y - 6, 'text-anchor': 'middle', 'dominant-baseline': 'central', class: 'clv', fill: '#ffd979' });
+      lvt.textContent = 'Lv.' + lv.lv;
+      g.appendChild(lvt);
+      var rkt = el('text', { x: C.x, y: C.y + 16, 'text-anchor': 'middle', 'dominant-baseline': 'central', class: 'crank', fill: '#c8b183' });
+      rkt.textContent = calc.rank();
+      g.appendChild(rkt);
+      var pct = el('text', { x: C.x, y: C.y + 33, 'text-anchor': 'middle', 'dominant-baseline': 'central', class: 'cpct', fill: '#8794ab' });
+      pct.textContent = calc.percent() + '%　' + lv.got + '/' + lv.max;
+      g.appendChild(pct);
+
+      /* 名前を出すのは「次の一手」の上位3つだけ。陣を文字で埋めない */
+      var featured = {}, labels = [];
+      calc.nextMoves(3).forEach(function (s) { featured[s.id] = 1; });
+
+      /* 星（アイコンの札） */
       SZ.SKILLS.forEach(function (s) {
         var v = st.state(s.id);
         var status = calc.status(s);
         var col = colorOf[s.const];
-        var base = [7, 8.6, 10][s.tier - 1];
+        var r = SZ.BADGE[s.tier - 1];
         var node = el('g', { class: 'star st' + v + ' ' + status, 'data-id': s.id, tabindex: '0' });
 
-        /* 当たり判定を広めに */
-        node.appendChild(el('circle', { cx: s.x, cy: s.y, r: 26, fill: 'transparent' }));
+        node.appendChild(el('circle', { cx: s.x, cy: s.y, r: r + 8, fill: 'transparent' }));
 
         if (v >= 2) {
           node.appendChild(el('circle', {
-            cx: s.x, cy: s.y, r: base * (1.9 + v * 0.5), fill: col,
-            opacity: (0.05 + v * 0.045).toFixed(3), filter: 'url(#softglow)'
+            cx: s.x, cy: s.y, r: r * (1.5 + v * 0.28), fill: col,
+            opacity: (0.05 + v * 0.05).toFixed(3), filter: 'url(#softglow)'
           }));
         }
 
         if (status === 'ready') {
-          node.appendChild(el('circle', {
-            cx: s.x, cy: s.y, r: base + 9, fill: 'none',
-            stroke: '#ffd979', 'stroke-width': 1.4, opacity: 0.85, class: 'pulse'
-          }));
+          var ring = self.badge(s.x, s.y, r + 7, s.tier);
+          ring.setAttribute('fill', 'none');
+          ring.setAttribute('stroke', '#ffd979');
+          ring.setAttribute('stroke-width', 1.6);
+          ring.setAttribute('class', 'pulse');
+          node.appendChild(ring);
         }
         if (status === 'locked') {
-          node.appendChild(el('circle', {
-            cx: s.x, cy: s.y, r: base + 7, fill: 'none',
-            stroke: '#7c88a0', 'stroke-width': 1, 'stroke-dasharray': '2 5', opacity: 0.55
-          }));
+          var lk = self.badge(s.x, s.y, r + 6, s.tier);
+          lk.setAttribute('fill', 'none');
+          lk.setAttribute('stroke', '#7c88a0');
+          lk.setAttribute('stroke-width', 1);
+          lk.setAttribute('stroke-dasharray', '2 5');
+          lk.setAttribute('opacity', 0.6);
+          node.appendChild(lk);
         }
 
-        var core = el('circle', {
-          cx: s.x, cy: s.y, r: base,
-          fill: v === 0 ? '#1b2231' : col,
-          stroke: v === 4 ? '#fff8e2' : col,
-          'stroke-width': v === 4 ? 2.4 : 1.2,
-          opacity: v === 0 ? (status === 'locked' ? 0.3 : 0.55) : (0.35 + v * 0.165).toFixed(2)
-        });
-        if (v >= 3) core.setAttribute('filter', 'url(#glow)');
-        node.appendChild(core);
+        var plate = self.badge(s.x, s.y, r, s.tier);
+        plate.setAttribute('fill', v === 0 ? '#161c2a' : col);
+        plate.setAttribute('fill-opacity', v === 0 ? 0.85 : (0.14 + v * 0.11).toFixed(2));
+        plate.setAttribute('stroke', v === 4 ? '#ffe9a8' : col);
+        plate.setAttribute('stroke-width', v === 4 ? 2.4 : 1.3);
+        plate.setAttribute('stroke-opacity', v === 0 ? (status === 'locked' ? 0.3 : 0.6) : (0.45 + v * 0.14).toFixed(2));
+        if (v >= 3) plate.setAttribute('filter', 'url(#glow)');
+        node.appendChild(plate);
 
-        if (v === 4) {
-          node.appendChild(el('circle', { cx: s.x, cy: s.y, r: base * 0.42, fill: '#fffdf5', opacity: 0.95 }));
-          var ray = 'M' + s.x + ' ' + (s.y - base - 9) + 'v6M' + s.x + ' ' + (s.y + base + 3) + 'v6' +
-                    'M' + (s.x - base - 9) + ' ' + s.y + 'h6M' + (s.x + base + 3) + ' ' + s.y + 'h6';
-          node.appendChild(el('path', { d: ray, stroke: '#ffe9a8', 'stroke-width': 1.6, 'stroke-linecap': 'round', opacity: 0.9 }));
+        var ico = el('text', {
+          x: s.x, y: s.y, 'text-anchor': 'middle', 'dominant-baseline': 'central',
+          class: 'sicon', 'font-size': r * 1.12,
+          opacity: v === 0 ? (status === 'locked' ? 0.32 : 0.62) : 1
+        });
+        ico.textContent = s.icon || '✦';
+        node.appendChild(ico);
+
+        var mk = el('text', {
+          x: s.x, y: s.y + r + 11, 'text-anchor': 'middle', 'dominant-baseline': 'central',
+          class: 'smark', fill: v === 4 ? '#ffd979' : (v >= 1 ? col : '#7c88a0'),
+          opacity: v === 0 ? 0.5 : 1
+        });
+        mk.textContent = SZ.STATES[v].mark;
+        node.appendChild(mk);
+
+        /* いま一番効く星だけ、名前を出す。
+           隣の札に隠れないよう、名前はぜんぶ描き終えてから上に載せる */
+        if (featured[s.id]) {
+          var label = el('text', {
+            x: s.x, y: s.y + r + 26, 'text-anchor': 'middle', class: 'slabel', fill: '#ffe9a8', opacity: 0.95
+          });
+          label.textContent = s.name;
+          labels.push(label);
         }
-
-        var label = el('text', {
-          x: s.x, y: s.y + base + 19, 'text-anchor': 'middle', class: 'slabel',
-          fill: v === 0 ? '#8794ab' : '#e9edf3',
-          opacity: v === 0 ? (status === 'locked' ? 0.4 : 0.72) : 0.95
-        });
-        label.textContent = s.name;
-        node.appendChild(label);
 
         g.appendChild(node);
       });
+
+      labels.forEach(function (t) { g.appendChild(t); });
     },
 
     /* ── 操作（引っぱって動かす・つまんで拡大） ── */

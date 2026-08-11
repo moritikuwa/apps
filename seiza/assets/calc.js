@@ -13,6 +13,47 @@
   SZ.SKILLS.forEach(function (s) { byId[s.id] = s; });
   SZ.byId = byId;
 
+  /* ============================================================
+     魔法陣の並べ方
+     星座＝扇（6等分）、段＝輪（内から 初級・中級・上級）。
+     技を足せば自動でその位置に入ります。座標を書く必要はありません。
+     ============================================================ */
+  SZ.RING = [142, 230, 306];        // 初級・中級・上級 の半径
+  SZ.OUTER = 336;                   // 一番外の輪
+  SZ.RING_LABEL_R = 372;            // 星座名を置く半径
+  SZ.CENTER = { x: SZ.MAP.w / 2, y: SZ.MAP.h / 2 };
+
+  SZ.BADGE = [24, 25.5, 27];              // 段ごとの札の大きさ（半径）
+
+  SZ.layout = function () {
+    var C = SZ.CENTER, sectors = SZ.CONSTELLATIONS.length;
+    var span = 360 / sectors;
+    SZ.CONSTELLATIONS.forEach(function (c, si) {
+      var mid = -90 + si * span;          // 扇の中心角（上を起点に時計回り）
+      c.angle = mid;
+      [1, 2, 3].forEach(function (tier) {
+        var list = SZ.SKILLS.filter(function (s) { return s.const === c.id && s.tier === tier; });
+        var R = SZ.RING[tier - 1];
+        /* 札がぶつからない間隔を、札の大きさと半径から逆算する。
+           技が増えても勝手に詰まらないよう、ここは固定値にしない。 */
+        var step = (SZ.BADGE[tier - 1] * 2 + 12) / R * 180 / Math.PI;
+        var use = list.length > 1
+          ? Math.max(span * 0.30, Math.min(span * 0.88, step * (list.length - 1)))
+          : 0;
+        list.forEach(function (s, i) {
+          var a = list.length === 1 ? mid : mid - use / 2 + use * i / (list.length - 1);
+          /* 3つ以上並ぶ段は、内外に互い違いにずらして間を稼ぐ */
+          var r = R + (list.length > 2 ? (i % 2 ? 17 : -17) : 0);
+          var rad = a * Math.PI / 180;
+          s.x = C.x + Math.cos(rad) * r;
+          s.y = C.y + Math.sin(rad) * r;
+          s.angle = a;
+        });
+      });
+    });
+  };
+  SZ.layout();
+
   var C = SZ.calc = {
 
     /* 前提がすべて★以上なら取りに行ける */
