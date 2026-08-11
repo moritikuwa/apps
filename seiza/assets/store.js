@@ -16,6 +16,7 @@
     daily: { at: '', id: '', done: false },   // 今日の一手
     dailyDone: 0,        // 今日の一手をやり切った回数（通算）
     badges: {},          // badgeId -> 'YYYY-MM-DD'
+    seen: {},            // 後から増えた星のうち、もう見たもの
     ui: { seenIntro: false, view: 'map' }
   };
 
@@ -50,6 +51,7 @@
             daily: Object.assign(clone(defaults.daily), p.daily || {}),
             dailyDone: p.dailyDone || 0,
             badges: p.badges || {},
+            seen: p.seen || {},
             ui: Object.assign(clone(defaults.ui), p.ui || {})
           };
         }
@@ -135,6 +137,17 @@
       return out.sort(function (a, b) { return a.at < b.at ? 1 : -1; });
     },
 
+    /* ── 後から増えた星 ── */
+    isNew: function (s) { return !!s.added && !this.data.seen[s.id]; },
+
+    markSeen: function (ids) {
+      var self = this, changed = false;
+      (typeof ids === 'string' ? [ids] : ids).forEach(function (id) {
+        if (!self.data.seen[id]) { self.data.seen[id] = 1; changed = true; }
+      });
+      if (changed) this.save();
+    },
+
     /* ── 書き出し・読み込み ── */
     exportText: function () {
       return JSON.stringify({ v: 1, savedAt: today(), data: this.data }, null, 2);
@@ -152,6 +165,7 @@
         daily: Object.assign(clone(defaults.daily), d.daily || {}),
         dailyDone: d.dailyDone || 0,
         badges: d.badges || {},
+        seen: d.seen || {},
         ui: Object.assign(clone(defaults.ui), d.ui || {})
       };
       this.save();
