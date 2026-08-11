@@ -421,6 +421,18 @@
       });
     },
 
+    /* 取った星・開いた星を、その場で弾ませる */
+    flash: function (ids) {
+      var g = this.g;
+      ids.forEach(function (id) {
+        var n = g.querySelector('[data-id="' + id + '"]');
+        if (n) n.classList.add('burst');
+      });
+      setTimeout(function () {
+        g.querySelectorAll('.burst').forEach(function (n) { n.classList.remove('burst'); });
+      }, 1100);
+    },
+
     /* 特定の星を画面の中央に寄せる */
     focus: function (id) {
       var s = SZ.byId[id];
