@@ -1,12 +1,13 @@
 /* AI星座  オフラインで使うための最小限のサービスワーカー
    記録は localStorage にあるので、ここではアプリの本体だけを持っておきます。 */
-var CACHE = 'seiza-v1';
+var CACHE = 'seiza-v2';
 var FILES = [
   './',
   './index.html',
   './manifest.json',
   './assets/style.css',
   './assets/skills.js',
+  './assets/badges.js',
   './assets/store.js',
   './assets/calc.js',
   './assets/map.js',

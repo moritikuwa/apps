@@ -12,6 +12,10 @@
     states: {},          // skillId -> 0..4
     log: [],             // { at:'YYYY-MM-DD', id, from, to }   状態が変わった記録
     runs: {},            // skillId -> [{ at, did, saw, fix }]  実行→確認→改善の記録
+    streak: { days: 0, best: 0, last: '' },   // 実行を記録した日の連続。押しただけでは伸びない
+    daily: { at: '', id: '', done: false },   // 今日の一手
+    dailyDone: 0,        // 今日の一手をやり切った回数（通算）
+    badges: {},          // badgeId -> 'YYYY-MM-DD'
     ui: { seenIntro: false, view: 'map' }
   };
 
@@ -20,6 +24,14 @@
   function today() {
     var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; };
     return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+
+  /* 'YYYY-MM-DD' 同士の日数の差 */
+  function dayDiff(a, b) {
+    var pa = a.split('-'), pb = b.split('-');
+    var da = Date.UTC(+pa[0], +pa[1] - 1, +pa[2]);
+    var db = Date.UTC(+pb[0], +pb[1] - 1, +pb[2]);
+    return Math.round((db - da) / 86400000);
   }
 
   var Store = SZ.store = {
@@ -34,6 +46,10 @@
             states: p.states || {},
             log: p.log || [],
             runs: p.runs || {},
+            streak: Object.assign(clone(defaults.streak), p.streak || {}),
+            daily: Object.assign(clone(defaults.daily), p.daily || {}),
+            dailyDone: p.dailyDone || 0,
+            badges: p.badges || {},
             ui: Object.assign(clone(defaults.ui), p.ui || {})
           };
         }
@@ -85,6 +101,29 @@
       this.save();
     },
 
+    /* ── 火（連続日数） ──
+       伸びるのは「実行を記録した日」だけ。星を押しただけでは伸びない。
+       ただし1日の抜けは許す。1日できなかっただけで全部消えるのは、続ける敵になるので。 */
+    touchStreak: function () {
+      var t = today(), s = this.data.streak;
+      if (s.last === t) return s;
+      var gap = s.last ? dayDiff(s.last, t) : 999;
+      s.days = (gap <= 2) ? s.days + 1 : 1;
+      s.last = t;
+      if (s.days > s.best) s.best = s.days;
+      this.save();
+      return s;
+    },
+
+    /* 火が消えているか（最後の記録から2日以上あいた） */
+    streakAlive: function () {
+      var s = this.data.streak;
+      if (!s.last) return false;
+      return dayDiff(s.last, today()) <= 2;
+    },
+
+    streakToday: function () { return this.data.streak.last === today(); },
+
     /* 改善だけを新しい順に集める（何を学び直したかの一覧） */
     allFixes: function () {
       var out = [], self = this;
@@ -109,6 +148,10 @@
         states: d.states || {},
         log: d.log || [],
         runs: d.runs || {},
+        streak: Object.assign(clone(defaults.streak), d.streak || {}),
+        daily: Object.assign(clone(defaults.daily), d.daily || {}),
+        dailyDone: d.dailyDone || 0,
+        badges: d.badges || {},
         ui: Object.assign(clone(defaults.ui), d.ui || {})
       };
       this.save();

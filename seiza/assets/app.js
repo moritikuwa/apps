@@ -54,6 +54,8 @@
 
     buzz(v >= SZ.OPEN ? [8, 34, 16] : 12);
 
+    if (v >= SZ.OPEN) calc.markDailyDone(id);
+
     if (!pending) pending = { lv: beforeLv, rank: beforeRank, unlocked: {}, flash: {}, star: 0 };
     unlocked.forEach(function (s) { pending.unlocked[s.id] = s; pending.flash[s.id] = 1; });
     pending.flash[id] = 1;
@@ -73,13 +75,16 @@
     var lv = calc.level(), rank = calc.rank();
     var un = Object.keys(p.unlocked).map(function (k) { return p.unlocked[k]; });
 
-    if (lv.lv > p.lv || rank !== p.rank) { cheerOverlay(p, lv, rank, un); return; }
-    if (un.length) {
+    if (lv.lv > p.lv || rank !== p.rank) {
+      cheerOverlay(p, lv, rank, un);
+    } else if (un.length) {
       toast('⚡ ' + (un.length === 1 ? '「' + un[0].name + '」' : un.length + 'つの星') + 'が解放された');
-      return;
+    } else if (p.star === 1) {
+      toast('🌟 「' + p.lastStar.name + '」を教えられる水準にした');
+    } else if (p.star > 1) {
+      toast('🌟 ' + p.star + 'つを教えられる水準にした');
     }
-    if (p.star === 1) toast('🌟 「' + p.lastStar.name + '」を教えられる水準にした');
-    else if (p.star > 1) toast('🌟 ' + p.star + 'つを教えられる水準にした');
+    checkBadges();
   }
 
   function cheerOverlay(p, lv, rank, un) {
@@ -104,14 +109,53 @@
     buzz(rankUp ? [10, 50, 10, 50, 10, 50, 30] : [10, 50, 20]);
   }
 
-  /* ── 上のバー（レベル） ── */
+  /* ── 印（灯った瞬間に出す） ── */
+  function checkBadges() {
+    var fresh = calc.earnBadges();
+    if (!fresh.length) return;
+    setTimeout(function () { badgeOverlay(fresh); }, 700);
+  }
+
+  function badgeOverlay(list) {
+    var one = list.length === 1;
+    var body = one
+      ? '<div class="bg-ico">' + list[0].icon + '</div>' +
+        '<div class="cr">' + esc(list[0].name) + '</div>' +
+        '<div class="cnx">' + esc(list[0].desc) + '</div>'
+      : '<div class="bg-row">' + list.map(function (b) { return '<span>' + b.icon + '</span>'; }).join('') + '</div>' +
+        '<div class="cr">' + list.length + 'つの印が灯った</div>' +
+        '<div class="cnx">' + list.map(function (b) { return esc(b.name); }).join('　/　') + '</div>';
+
+    var box = h('<div class="cheer badge">' +
+      '<div class="cheer-in">' +
+        '<span class="ring r1"></span><span class="ring r2"></span><span class="ring r3"></span>' +
+        '<div class="ck">' + (one ? '印が灯った' : '印が灯った') + '</div>' +
+        body +
+      '</div></div>');
+    document.body.appendChild(box);
+    requestAnimationFrame(function () { box.classList.add('go'); });
+    var close = function () { box.classList.remove('go'); setTimeout(function () { box.remove(); }, 260); };
+    box.onclick = close;
+    setTimeout(close, one ? 3000 : 3800);
+    buzz([10, 50, 10, 50, 30]);
+  }
+
+  /* ── 上のバー（レベル・火） ── */
   function renderHud() {
     var lv = calc.level();
-    var pct = calc.percent();
     document.getElementById('hud-lv').textContent = 'Lv.' + lv.lv;
     document.getElementById('hud-rank').textContent = calc.rank() + '　' + calc.gradeName();
     document.getElementById('hud-bar').style.width = (lv.into / lv.need * 100) + '%';
-    document.getElementById('hud-pct').textContent = pct + '%';
+    document.getElementById('hud-pct').textContent = calc.percent() + '%';
+
+    var fire = document.getElementById('hud-fire');
+    var s = store.data.streak;
+    var alive = store.streakAlive();
+    fire.innerHTML = '🔥<b>' + (alive ? s.days : 0) + '</b>';
+    fire.className = alive ? (store.streakToday() ? 'lit' : 'wait') : 'off';
+    fire.title = alive
+      ? (store.streakToday() ? s.days + '日つづいています' : '今日まだ実行を記録していません')
+      : '実行を記録すると火がつきます';
   }
 
   /* ── 星図 ── */
@@ -152,7 +196,25 @@
     var almost = calc.almost(3);
     var weak = calc.weakest();
 
-    var html = '<p class="lead">今の森さんの星の並びから、<b>いま取りに行くと一番効く星</b>を出しています。' +
+    /* ── 今日の一手：毎日ひとつだけ。迷う時間をなくす ── */
+    var d = calc.daily();
+    var html = '';
+    if (d) {
+      var dc = cOf(d.skill.const);
+      html += '<div class="today' + (d.done ? ' done' : '') + '">' +
+        '<div class="today-k">' + (d.done ? '✔ 今日の一手 — やり切った' : '今日の一手') + '</div>' +
+        '<button class="today-b" data-id="' + d.skill.id + '">' +
+          '<span class="today-ic" style="border-color:' + dc.color + '">' + (d.skill.icon || '✦') + '</span>' +
+          '<span class="today-t"><b>' + esc(d.skill.name) + '</b>' +
+            '<i>' + esc(dc.name) + '・' + TIERNAME[d.skill.tier] + '</i></span>' +
+          '<span class="go">›</span>' +
+        '</button>' +
+        '<div class="today-d">' + esc(d.skill.do) + '</div>' +
+        (d.done ? '' : '<div class="today-n">これを1回やって記録すると、🔥がつきます</div>') +
+        '</div>';
+    }
+
+    html += '<p class="lead">今の森さんの星の並びから、<b>いま取りに行くと一番効く星</b>を出しています。' +
       '一番うすいのは <b style="color:' + weak.color + '">' + esc(weak.name) + '</b> です。</p>';
 
     if (!moves.length) {
@@ -187,7 +249,7 @@
 
     app.innerHTML = html;
     app.onclick = function (e) {
-      var b = e.target.closest('.move'); if (!b) return;
+      var b = e.target.closest('.move, .today-b'); if (!b) return;
       openSheet(b.dataset.id);
     };
   }
@@ -262,6 +324,22 @@
         '<div><b>' + rem.all + '<i>個</i></b><span>★に届いていない</span></div>' +
       '</div></div>';
 
+    /* ── 印 ── */
+    var got = store.data.badges;
+    var gotN = SZ.BADGES.filter(function (b) { return got[b.id]; }).length;
+    html += '<div class="card"><h2 class="sec2">🏅 印　<small>' + gotN + ' / ' + SZ.BADGES.length + '</small></h2>' +
+      '<p class="note">押すだけでは灯りません。<b>実際に手を動かした分だけ</b>灯ります。</p>' +
+      '<div class="badges">' + SZ.BADGES.map(function (b) {
+        var on = !!got[b.id];
+        var secret = b.hidden && !on;
+        return '<button class="bdg' + (on ? ' on' : '') + '" data-badge="' + b.id + '">' +
+          '<span class="bi">' + (secret ? '？' : b.icon) + '</span>' +
+          '<span class="bn">' + (secret ? '？？？' : esc(b.name)) + '</span>' +
+          (on ? '<span class="bd2">' + esc(got[b.id]) + '</span>' : '') +
+          '</button>';
+      }).join('') + '</div>' +
+      '<p class="note bhint" id="bhint">印を押すと、灯る条件が出ます。</p></div>';
+
     html += '<div class="card verdict"><h2 class="sec2">👁 見立て</h2>' +
       '<p>' + esc(wc.advice || '') + '</p>' +
       '<p class="note">★に届いていない星は ' + rem.all + '個（初級' + rem.t[0] + '・中級' + rem.t[1] + '・上級' + rem.t[2] + '）。' +
@@ -320,6 +398,15 @@
     };
 
     app.onclick = function (e) {
+      var bg = e.target.closest('[data-badge]');
+      if (bg) {
+        var bd = SZ.BADGES.filter(function (x) { return x.id === bg.dataset.badge; })[0];
+        var on = !!store.data.badges[bd.id];
+        document.getElementById('bhint').innerHTML = (on ? '✔ ' : '') +
+          '<b>' + esc(bd.hidden && !on ? '？？？' : bd.name) + '</b>　' +
+          esc(bd.hidden && !on ? 'まだ明かせません。進めば出てきます。' : bd.desc);
+        return;
+      }
       var o = e.target.closest('[data-open]');
       if (o) { openSheet(o.dataset.open); return; }
       var b = e.target.closest('[data-set]');
@@ -487,11 +574,18 @@
       sheetHost.querySelectorAll('.loop textarea').forEach(function (t) { rec[t.dataset.f] = t.value.trim(); });
       if (!rec.did && !rec.saw && !rec.fix) { toast('何か1つは書いてください'); return; }
       store.addRun(s.id, rec);
+      /* 火が伸びるのはここだけ。実際に手を動かした日にしか灯らない */
+      var st = store.touchStreak();
+      var daily = calc.markDailyDone(s.id);
       /* 一度でも回したなら、少なくとも「やったことがある」まで進める */
       if (store.state(s.id) < 2) applyState(s.id, 2);
+      renderHud();
       if (view === 'map') SZ.map.draw();
       openSheet(s.id);
-      toast('記録しました');
+      toast(daily ? '🎯 今日の一手、やり切りました　🔥' + st.days + '日'
+                  : '記録しました　🔥' + st.days + '日つづいています');
+      buzz([10, 40, 20]);
+      checkBadges();
     };
 
     sheetHost.querySelectorAll('[data-del]').forEach(function (b) {
@@ -588,6 +682,9 @@
     });
 
     go(store.data.ui.view || 'map');
+
+    /* すでに条件を満たしている印を、開いたときに灯す */
+    setTimeout(checkBadges, 600);
 
     if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
       navigator.serviceWorker.register('sw.js').catch(function () {});
