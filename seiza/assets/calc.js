@@ -189,6 +189,66 @@
       return n ? list.slice(0, n) : list;
     },
 
+    /* ── 今日の一手 ──
+       毎日ひとつだけ選ばれる。その日のうちは変わらない（迷う余地をなくすため）。 */
+    daily: function () {
+      var t = SZ.today(), d = SZ.store.data.daily;
+      if (d.at === t && d.id && SZ.byId[d.id]) return { skill: SZ.byId[d.id], done: !!d.done };
+
+      /* 効く順の上位から選ぶ。毎日ちがう星が来るが、必ず今の自分に効く星 */
+      var list = this.nextMoves(8);
+      if (!list.length) return null;
+      var n = 0;
+      for (var i = 0; i < t.length; i++) n = (n * 131 + t.charCodeAt(i)) % 1000003;
+      var pick = list[n % list.length];
+      SZ.store.data.daily = { at: t, id: pick.id, done: false };
+      SZ.store.save();
+      return { skill: pick, done: false };
+    },
+
+    /* 今日の一手をやり切った（実行を記録した、または★以上にした） */
+    markDailyDone: function (id) {
+      var d = SZ.store.data.daily;
+      if (d.at !== SZ.today() || d.id !== id || d.done) return false;
+      d.done = true;
+      SZ.store.data.dailyDone = (SZ.store.data.dailyDone || 0) + 1;
+      SZ.store.save();
+      return true;
+    },
+
+    /* ── 印の判定に渡す値 ── */
+    badgeCtx: function () {
+      var runs = 0, fixes = 0, R = SZ.store.data.runs;
+      Object.keys(R).forEach(function (k) {
+        R[k].forEach(function (r) { runs++; if (r.fix) fixes++; });
+      });
+      var complete = 0, lit = 0;
+      SZ.CONSTELLATIONS.forEach(function (c) {
+        var list = SZ.SKILLS.filter(function (s) { return s.const === c.id; });
+        var done = list.filter(function (s) { return SZ.store.state(s.id) >= OPEN; }).length;
+        if (list.length && done === list.length) complete++;
+        if (done > 0) lit++;
+      });
+      return {
+        runs: runs, fixes: fixes, streak: SZ.store.data.streak.days,
+        daily: SZ.store.data.dailyDone || 0, taught: this.taught(),
+        complete: complete, lit: lit, remaining: this.remaining().all
+      };
+    },
+
+    /* 新しく灯った印を返す（同時に保存する） */
+    earnBadges: function () {
+      var ctx = this.badgeCtx(), got = SZ.store.data.badges, fresh = [];
+      SZ.BADGES.forEach(function (b) {
+        if (got[b.id]) return;
+        var ok = false;
+        try { ok = b.check(ctx); } catch (e) { ok = false; }
+        if (ok) { got[b.id] = SZ.today(); fresh.push(b); }
+      });
+      if (fresh.length) SZ.store.save();
+      return fresh;
+    },
+
     /* この星を開けるために先に取るべきもの（前提を深くたどる） */
     prereqChain: function (s) {
       var out = [], seen = {};
