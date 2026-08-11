@@ -1,0 +1,15 @@
+{
+  "name": "AI星座 — いま自分に何が抜けているかが、星で見える",
+  "short_name": "AI星座",
+  "description": "Claudeを使いこなす技を星座にして、次に何をすれば最短で進むかを示すアプリ。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0d16",
+  "theme_color": "#0a0d16",
+  "lang": "ja",
+  "icons": [
+    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
