@@ -105,6 +105,31 @@
       return t.max ? Math.round(t.got / t.max * 100) : 0;
     },
 
+    /* ── 最高到達率 ──
+       星が増えると分母が増えるので、何もしなくても習得率は下がる。
+       腕が落ちたわけではないので、一度届いた高さは別に覚えておいて併記する。 */
+    bestPercent: function () {
+      var b = SZ.store.data.best || {};
+      return b.percent || 0;
+    },
+
+    bestAt: function () {
+      var b = SZ.store.data.best || {};
+      return b.at || '';
+    },
+
+    /* いまの率が過去最高を超えていれば更新する。下がったときは触らない */
+    touchBest: function () {
+      var p = this.percent();
+      var b = SZ.store.data.best || (SZ.store.data.best = { percent: 0, at: '' });
+      if (p > (b.percent || 0)) {
+        b.percent = p;
+        b.at = SZ.today();
+        SZ.store.save();
+      }
+      return b;
+    },
+
     /* レベル（星7つ分の習得で1つ上がる） */
     level: function () {
       var t = this.total();

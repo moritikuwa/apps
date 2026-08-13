@@ -143,10 +143,21 @@
   /* ── 上のバー（レベル・火） ── */
   function renderHud() {
     var lv = calc.level();
+    calc.touchBest();
     document.getElementById('hud-lv').textContent = 'Lv.' + lv.lv;
     document.getElementById('hud-rank').textContent = calc.rank() + '　' + calc.gradeName();
     document.getElementById('hud-bar').style.width = (lv.into / lv.need * 100) + '%';
-    document.getElementById('hud-pct').textContent = calc.percent() + '%';
+
+    /* 星が増えて分母が伸びた日は数字が下がる。届いた高さは消さずに横に出す */
+    var pct = calc.percent(), best = calc.bestPercent();
+    var pe = document.getElementById('hud-pct');
+    pe.textContent = pct + '%';
+    if (best > pct) {
+      pe.appendChild(h('<i>最高' + best + '%</i>'));
+      pe.title = 'これまでの最高は ' + best + '%。星が増えたぶん、いまの数字が下がって見えています';
+    } else {
+      pe.title = '';
+    }
 
     var fire = document.getElementById('hud-fire');
     var s = store.data.streak;
@@ -335,6 +346,13 @@
     } else {
       html += '<div class="me-next">すべての称号を取り切りました。</div>';
     }
+    /* 星が増えた日に数字が下がっても、届いた高さは残す */
+    var best = calc.bestPercent();
+    if (best > calc.percent()) {
+      html += '<div class="me-best">これまでの最高は <b>' + best + '%</b>' +
+        (calc.bestAt() ? '（' + esc(calc.bestAt()) + '）' : '') + '<br>' +
+        '<span>星が増えて分母が伸びたぶん、いまの数字が下がって見えています。腕は落ちていません。</span></div>';
+    }
     if (lit) html += '<div class="me-today">今日、<b>' + lit + '個</b>の星を灯した</div>';
     html += '</div>';
 
@@ -440,6 +458,114 @@
     };
   }
 
+  /* ── 接続（任意・読み取り専用） ──
+     繋がなければ何も起きない。繋いでも、こちらから出すものは1件もない。 */
+  var MATCHNAME = { now: '⚡ 今すぐ効く', early: '🔒 まだ早い', before: '⚠ 先にこれ' };
+  var FROMNAME = { youtube: 'YouTube', x: 'X', note: 'note', web: 'Web' };
+
+  function linkHtml() {
+    var L = SZ.link;
+    var sends = L.sends();
+    var sendLine = '<div class="lk-send"><b>外に出すもの</b>' +
+      (sends.length ? sends.map(function (x) { return esc(x); }).join('・') : 'なし（読むだけ）') + '</div>';
+
+    if (!L.isOn()) {
+      return '<div class="card lk"><h2 class="sec2">🔌 接続　<small>使わなくてかまいません</small></h2>' +
+        '<p class="note">いまは<b>何も繋いでいません</b>。記録はこの端末の中だけにあります。</p>' +
+        '<p class="note">繋ぐと、GitHub の<b>公開ページを読みに行くだけ</b>になります。' +
+        'ログインもパスワードも鍵も要りません。<b>こちらから出すものはありません。</b><br>' +
+        '技の一覧が更新されたかと、集まった候補が見えるようになります。</p>' +
+        sendLine +
+        '<div class="btns"><button id="lk-on">読み取りだけで繋ぐ</button></div></div>';
+    }
+
+    var g = L.data.sources.github;
+    var st = L.data.status;
+    var html = '<div class="card lk on"><h2 class="sec2">🔌 接続　<small>読み取りだけ</small></h2>' +
+      '<div class="lk-st">✔ ' + esc(g.owner + '/' + g.repo) + ' の公開ページを読んでいます</div>' +
+      sendLine +
+      '<div class="lk-row"><span>最後に確認した日</span><b>' +
+        (g.lastSync ? esc(g.lastSync) : 'まだ確認していません') + '</b></div>';
+
+    if (g.lastAt) {
+      html += '<div class="lk-row"><span>技の一覧の更新</span><b>' + esc(g.lastAt) +
+        (L.hasUpdate() ? '　<i class="lk-new">新しい更新があります</i>' : '') + '</b></div>';
+    }
+    if (st.at && st.ok === false) {
+      html += '<p class="note lk-err">⚠ ' + esc(st.msg || '読めませんでした') + '</p>';
+    }
+
+    var cands = L.data.candidates;
+    var fresh = L.fresh();
+    html += '<h2 class="sec2 lk-h">🔭 候補　<small>' + fresh.length + '件</small></h2>';
+    if (!cands.length) {
+      html += '<p class="note">候補はまだありません。自動収集をつなぐと、ここに並びます。</p>';
+    } else {
+      html += '<p class="note">候補は<b>まだ星ではありません</b>。「気になる」を押したものだけ、次の段階で技として足します。</p>' +
+        '<div class="cand">' + cands.slice(0, 30).map(function (c) {
+          return '<div class="cd ' + c.state + '">' +
+            '<div class="cd-h"><span class="cd-m ' + c.match + '">' + MATCHNAME[c.match] + '</span>' +
+              '<span class="cd-f">' + esc(FROMNAME[c.from] || c.from) +
+              (c.foundAt ? '・' + esc(c.foundAt) : '') + '</span></div>' +
+            '<b class="cd-t">' + esc(c.title || '（題名なし）') + '</b>' +
+            (c.relatedTo.length ? '<div class="cd-r">' + c.relatedTo.map(function (id) {
+              var s = SZ.byId[id];
+              return '「' + esc(s ? s.name : id) + '」';
+            }).join('') + 'に関係</div>' : '') +
+            '<div class="cd-b">' +
+              (c.url ? '<a class="chip" href="' + esc(c.url) + '" target="_blank" rel="noopener noreferrer nofollow">見に行く</a>' : '') +
+              '<button class="chip" data-keep="' + esc(c.id) + '">' + (c.state === 'kept' ? '✔ 気になる' : '気になる') + '</button>' +
+              '<button class="chip" data-drop="' + esc(c.id) + '">' + (c.state === 'dropped' ? '✔ 見送った' : '見送る') + '</button>' +
+            '</div></div>';
+        }).join('') + '</div>';
+    }
+
+    html += '<div class="btns"><button id="lk-sync">いま確認する</button>' +
+      '<button id="lk-off" class="danger">接続を切る</button></div>' +
+      '<p class="note">接続を切ると、<b>接続で覚えたものだけ</b>が消えます。星の記録は消えません。</p></div>';
+    return html;
+  }
+
+  function bindLink() {
+    var L = SZ.link;
+
+    var on = document.getElementById('lk-on');
+    if (on) on.onclick = function () {
+      if (!confirm('GitHub の公開ページを読みに行きます。\nこちらから出すデータはありません。繋ぎますか？')) return;
+      L.enable();
+      viewSettings();
+      toast('繋ぎました。読み取りだけです');
+      setTimeout(function () { var b = document.getElementById('lk-sync'); if (b) b.click(); }, 200);
+    };
+
+    var sync = document.getElementById('lk-sync');
+    if (sync) sync.onclick = function () {
+      sync.disabled = true;
+      sync.textContent = '確認しています…';
+      L.sync(function (r) {
+        if (r.ok) L.markUpdateSeen();
+        viewSettings();
+        toast(r.ok ? '確認しました' : '確認できませんでした：' + (r.msg || ''));
+      });
+    };
+
+    var off = document.getElementById('lk-off');
+    if (off) off.onclick = function () {
+      if (!confirm('接続を切ります。\n接続で覚えたものは消えますが、星の記録は残ります。')) return;
+      L.disable();
+      viewSettings();
+      toast('接続を切りました');
+    };
+
+    document.querySelectorAll('[data-keep],[data-drop]').forEach(function (b) {
+      b.onclick = function () {
+        var keep = b.dataset.keep;
+        L.setCandidate(keep || b.dataset.drop, keep ? 'kept' : 'dropped');
+        viewSettings();
+      };
+    });
+  }
+
   /* ── 設定 ── */
   function viewSettings() {
     app.className = 'main';
@@ -451,6 +577,8 @@
       '前提の星が★になると、その先の星が「⚡今すぐ取れる」に変わります。' +
       '順番を飛ばして上の技に手を出すと遠回りになるので、⚡から取っていくのが一番速い道です。</p></div>' +
 
+      linkHtml() +
+
       '<div class="card"><h2 class="sec2">記録の持ち出し</h2>' +
       '<p class="note">記録はこの端末のブラウザの中だけにあります。機種変えのときは、下の文字を全部コピーして新しい端末に貼ってください。</p>' +
       '<textarea id="dump" spellcheck="false"></textarea>' +
@@ -459,6 +587,8 @@
       '<div class="card"><h2 class="sec2">最初からやり直す</h2>' +
       '<p class="note">すべての星を☆に戻します。取り消せません。</p>' +
       '<div class="btns"><button id="reset" class="danger">全部消す</button></div></div>';
+
+    bindLink();
 
     var dump = document.getElementById('dump');
     dump.value = store.exportText();
@@ -696,6 +826,7 @@
     app = document.getElementById('app');
     sheetHost = document.getElementById('sheet-host');
     store.load();
+    SZ.link.load();
 
     document.getElementById('tabbar').addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b) return;

@@ -355,3 +355,46 @@ button.wide.sub { border-color:rgba(95,212,168,.35); background:rgba(95,212,168,
   .statcard { flex-wrap:nowrap; }
   .radar { width:230px; height:230px; margin:0; }
 }
+
+/* ── 最高到達率（星が増えて分母が伸びた日に出る） ── */
+#hud-pct { line-height:1.1; text-align:right; }
+#hud-pct i { display:block; font-style:normal; font-size:9px; color:var(--dim); letter-spacing:.01em; }
+.me-best {
+  margin-top:12px; padding:9px 12px; border-radius:10px;
+  background:rgba(224,179,65,.08); border:1px solid rgba(224,179,65,.22);
+  font-size:12.5px; color:var(--muted);
+}
+.me-best b { color:var(--gold); font-size:15px; }
+.me-best span { font-size:11.5px; color:var(--dim); }
+
+/* ── 接続（任意・読み取り専用） ── */
+.card.lk .sec2 small { color:var(--dim); font-weight:400; font-size:11px; }
+.card.lk.on { border-color:rgba(95,212,168,.24); }
+.lk-st { margin:2px 0 10px; font-size:12.5px; color:#7fe3bd; font-weight:700; }
+.lk-send {
+  margin:10px 0; padding:8px 11px; border-radius:9px;
+  background:rgba(255,255,255,.04); border:1px solid var(--line);
+  font-size:12px; color:var(--muted);
+}
+.lk-send b { display:block; font-size:10.5px; letter-spacing:.14em; color:var(--dim); margin-bottom:2px; }
+.lk-row { display:flex; justify-content:space-between; gap:10px; align-items:baseline;
+  padding:7px 0; border-top:1px solid rgba(255,255,255,.06); font-size:12.5px; }
+.lk-row span { color:var(--muted); }
+.lk-new { font-style:normal; color:#7fe3bd; font-size:11.5px; }
+.lk-err { color:#ff9a9a; margin-top:8px; }
+.lk-h { margin-top:16px; }
+
+.cand { display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+.cd { padding:10px 12px; border-radius:11px; background:rgba(10,13,22,.45); border:1px solid var(--line); }
+.cd.kept { border-color:rgba(95,212,168,.35); background:rgba(95,212,168,.08); }
+.cd.dropped { opacity:.42; }
+.cd-h { display:flex; justify-content:space-between; gap:8px; align-items:baseline; }
+.cd-m { font-size:11px; font-weight:800; }
+.cd-m.now { color:var(--gold); }
+.cd-m.early { color:var(--dim); }
+.cd-m.before { color:#ffb37a; }
+.cd-f { font-size:10.5px; color:var(--dim); }
+.cd-t { display:block; margin-top:4px; font-size:14px; line-height:1.55; }
+.cd-r { margin-top:3px; font-size:11.5px; color:var(--muted); }
+.cd-b { display:flex; flex-wrap:wrap; gap:6px; margin-top:9px; }
+.cd-b .chip { font-size:11.5px; padding:4px 10px; text-decoration:none; }
