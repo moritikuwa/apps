@@ -17,6 +17,7 @@
     dailyDone: 0,        // 今日の一手をやり切った回数（通算）
     badges: {},          // badgeId -> 'YYYY-MM-DD'
     seen: {},            // 後から増えた星のうち、もう見たもの
+    best: { percent: 0, at: '' },             // これまでの最高習得率。星が増えても下がらない
     ui: { seenIntro: false, view: 'map' }
   };
 
@@ -52,6 +53,7 @@
             dailyDone: p.dailyDone || 0,
             badges: p.badges || {},
             seen: p.seen || {},
+            best: Object.assign(clone(defaults.best), p.best || {}),
             ui: Object.assign(clone(defaults.ui), p.ui || {})
           };
         }
@@ -166,6 +168,7 @@
         dailyDone: d.dailyDone || 0,
         badges: d.badges || {},
         seen: d.seen || {},
+        best: Object.assign(clone(defaults.best), d.best || {}),
         ui: Object.assign(clone(defaults.ui), d.ui || {})
       };
       this.save();
