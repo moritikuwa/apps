@@ -1,0 +1,217 @@
+/* ============================================================
+   いっこまえ / IKKOMAE   見た目
+   小学校低学年が 一人で さわれること を いちばんに。
+   ・押せる ところは 大きく（さいてい 56px）
+   ・文字は 大きく、行は ゆったり
+   ・一つの 画面で 聞くことは 一つだけ
+   ============================================================ */
+:root {
+  --bg:#131a26;
+  --bg2:#0e141e;
+  --card:#1d2634;
+  --card2:#26324a;
+  --line:rgba(255,255,255,.10);
+  --text:#eef3f9;
+  --muted:#9dabbd;
+  --dim:#6d7d92;
+  --gold:#ffd35e;
+  --kid:#5ecfb0;
+  --adult:#f2a253;
+  --bar:54px;
+  --tab:64px;
+}
+
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { height:100%; }
+body {
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
+  line-height:1.8; font-size:16px; -webkit-font-smoothing:antialiased;
+  overscroll-behavior:none;
+}
+button { font:inherit; color:inherit; }
+
+/* ── 上のバー ── */
+.appbar {
+  position:fixed; top:0; left:0; right:0; z-index:40;
+  height:calc(var(--bar) + env(safe-area-inset-top)); padding-top:env(safe-area-inset-top);
+  background:linear-gradient(180deg,#182031 0%,rgba(24,32,49,.93) 100%);
+  border-bottom:1px solid var(--line); backdrop-filter:blur(8px);
+}
+.appbar-in { display:flex; align-items:center; gap:10px; height:var(--bar); padding:0 14px; max-width:720px; margin:0 auto; }
+.logo { font-weight:800; letter-spacing:.08em; font-size:16px; }
+.logo b { color:var(--gold); }
+.spacer { flex:1; }
+#hud-fire { font-size:14px; font-weight:700; color:var(--gold); font-variant-numeric:tabular-nums; }
+#hud-fire.off { color:var(--dim); filter:grayscale(1); }
+.iconbtn {
+  width:40px; height:40px; border-radius:11px; border:1px solid var(--line);
+  background:var(--card); font-size:17px; cursor:pointer; flex:none;
+}
+
+/* ── 本体 ── */
+.main { max-width:720px; margin:0 auto; padding:calc(var(--bar) + env(safe-area-inset-top) + 16px) 16px calc(var(--tab) + env(safe-area-inset-bottom) + 28px); }
+body.noTab .main { padding-bottom:calc(env(safe-area-inset-bottom) + 28px); }
+
+/* ── 下のタブ ── */
+.tabbar {
+  position:fixed; left:0; right:0; bottom:0; z-index:40;
+  height:calc(var(--tab) + env(safe-area-inset-bottom)); padding-bottom:env(safe-area-inset-bottom);
+  background:rgba(16,22,33,.96); border-top:1px solid var(--line); backdrop-filter:blur(8px);
+}
+body.noTab .tabbar { display:none; }
+.tabbar-in { display:flex; height:var(--tab); max-width:720px; margin:0 auto; }
+.tabbar-in button {
+  flex:1; background:none; border:0; cursor:pointer; color:var(--dim);
+  font-size:11.5px; font-weight:700; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+}
+.tabbar-in button .i { font-size:21px; line-height:1; }
+.tabbar-in button.on { color:var(--gold); }
+
+/* ── 共通のふだ ── */
+.panel { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; margin:0 0 14px; }
+.h { font-size:13px; font-weight:800; color:var(--muted); letter-spacing:.06em; margin:0 0 10px; }
+.sub { font-size:13.5px; color:var(--muted); line-height:1.75; margin:0; }
+.center { text-align:center; }
+
+/* ── おおきなボタン ── */
+.big {
+  display:block; width:100%; min-height:62px; border-radius:16px; border:0; cursor:pointer;
+  background:linear-gradient(180deg,#ffe08a,#f0bd42); color:#221a05;
+  font-size:19px; font-weight:800; letter-spacing:.04em; margin:14px 0 0;
+  box-shadow:0 6px 0 #a8801f; transition:transform .06s, box-shadow .06s;
+}
+.big:active { transform:translateY(4px); box-shadow:0 2px 0 #a8801f; }
+.big.ghost { background:var(--card2); color:var(--text); box-shadow:0 6px 0 #141b27; }
+.big.ghost:active { box-shadow:0 2px 0 #141b27; }
+.big[disabled] { opacity:.4; box-shadow:none; cursor:default; transform:none; }
+.mini {
+  min-height:44px; padding:0 16px; border-radius:11px; border:1px solid var(--line);
+  background:var(--card2); cursor:pointer; font-size:14px; font-weight:700;
+}
+.row { display:flex; gap:10px; flex-wrap:wrap; }
+.row > .mini { flex:1; min-width:130px; }
+
+/* ── きょうの おだい ── */
+.theme {
+  background:linear-gradient(160deg,#243049,#1a2233);
+  border:1px solid var(--line); border-radius:20px; padding:22px 18px; text-align:center;
+}
+.theme .tag { display:inline-block; font-size:11.5px; font-weight:800; padding:3px 12px; border-radius:99px; background:rgba(255,255,255,.09); letter-spacing:.06em; }
+.theme .em { font-size:52px; line-height:1.2; margin:8px 0 2px; }
+.theme .lab { font-size:12px; color:var(--gold); font-weight:800; letter-spacing:.12em; margin-bottom:4px; }
+.theme .goal { font-size:21px; font-weight:800; line-height:1.6; }
+
+/* ── みち（はしご） ── */
+.road { margin:6px 0 0; }
+.rung {
+  position:relative; background:var(--card); border:1px solid var(--line); border-radius:14px;
+  padding:13px 14px 13px 46px; margin:0 0 8px; font-size:15.5px; line-height:1.6;
+}
+.rung .n {
+  position:absolute; left:12px; top:12px; width:24px; height:24px; border-radius:50%;
+  background:var(--card2); color:var(--muted); font-size:12px; font-weight:800;
+  display:flex; align-items:center; justify-content:center;
+}
+.rung.goal { background:linear-gradient(180deg,#33406040,#1d2634); border-color:rgba(255,211,94,.45); padding-left:46px; }
+.rung.goal .n { background:var(--gold); color:#221a05; }
+.rung.blank { border-style:dashed; color:var(--dim); font-size:14px; padding-top:10px; padding-bottom:10px; }
+.rung.blank .n { top:9px; }
+.rung .sz { float:right; color:var(--dim); font-size:11px; letter-spacing:.14em; margin-left:8px; }
+.arrow { text-align:center; color:var(--dim); font-size:16px; line-height:1; margin:-2px 0 6px; }
+
+/* ── といかけ ── */
+.ask {
+  text-align:center; font-size:24px; font-weight:800; letter-spacing:.02em;
+  margin:20px 0 4px; line-height:1.5;
+}
+.ask small { display:block; font-size:13px; font-weight:700; color:var(--muted); letter-spacing:.06em; margin-top:4px; }
+.count { text-align:center; font-size:12px; font-weight:800; color:var(--gold); letter-spacing:.14em; font-variant-numeric:tabular-nums; }
+
+/* ── てふだ ── */
+.hand { display:grid; grid-template-columns:1fr; gap:10px; margin:14px 0 0; }
+@media (min-width:520px) { .hand { grid-template-columns:1fr 1fr; } }
+.pick {
+  text-align:left; width:100%; min-height:60px; padding:14px 16px; cursor:pointer;
+  background:var(--card); border:1.5px solid var(--line); border-radius:14px;
+  font-size:16px; line-height:1.6; font-weight:600;
+  transition:transform .07s, border-color .12s, background .12s;
+}
+.pick:active { transform:scale(.97); }
+.pick:hover { border-color:var(--gold); }
+.pick.chosen { border-color:var(--gold); background:#2c3549; }
+
+/* ── ばんの わたし ── */
+.handoff { text-align:center; padding:34px 12px 8px; }
+.handoff .em { font-size:64px; }
+.handoff .who { font-size:26px; font-weight:800; margin:8px 0 2px; }
+.handoff .note { color:var(--muted); font-size:14px; }
+
+/* ── みくらべ ── */
+.compare { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; align-items:stretch; }
+.compare.one { grid-template-columns:1fr; }
+.cname { font-size:13px; font-weight:800; text-align:center; padding:6px 0; border-radius:10px; }
+.cname.kid { background:rgba(94,207,176,.16); color:var(--kid); }
+.cname.adult { background:rgba(242,162,83,.16); color:var(--adult); }
+.crung {
+  background:var(--card); border:1px solid var(--line); border-radius:12px;
+  padding:10px 11px; font-size:14px; line-height:1.65;
+}
+.crung .sz { display:block; color:var(--dim); font-size:10.5px; letter-spacing:.16em; margin-bottom:2px; }
+.crung.same { border-color:var(--gold); background:#2a3247; }
+.samemark { text-align:center; font-size:11.5px; color:var(--gold); font-weight:800; margin:-3px 0 8px; }
+.shape { background:var(--card2); border:1px solid var(--line); border-radius:14px; padding:14px 16px; margin-top:14px; }
+.shape .t { font-size:16px; font-weight:800; margin-bottom:4px; }
+.shape .b { font-size:13.5px; color:var(--muted); line-height:1.8; }
+.shape .m { font-size:26px; float:right; margin-left:10px; }
+
+/* ── やくそく ── */
+.promise { background:linear-gradient(160deg,#2b3550,#1c2434); border:1px solid rgba(255,211,94,.35); border-radius:16px; padding:18px; text-align:center; }
+.promise .lab { font-size:12px; font-weight:800; color:var(--gold); letter-spacing:.12em; }
+.promise .t { font-size:19px; font-weight:800; line-height:1.6; margin:8px 0 2px; }
+.promise .by { font-size:12.5px; color:var(--muted); }
+
+/* ── きろく ── */
+.logitem { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; margin:0 0 10px; }
+.logitem .top { display:flex; align-items:center; gap:10px; }
+.logitem .em { font-size:26px; }
+.logitem .g { font-weight:800; font-size:15px; line-height:1.5; flex:1; }
+.logitem .d { font-size:11.5px; color:var(--dim); font-variant-numeric:tabular-nums; }
+.logitem .todo { margin-top:10px; padding:10px 12px; border-radius:11px; background:var(--card2); font-size:13.5px; }
+.logitem .todo.ok { background:rgba(94,207,176,.14); color:var(--kid); }
+.stats { display:flex; gap:10px; }
+.stat { flex:1; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 10px; text-align:center; }
+.stat b { display:block; font-size:26px; font-weight:800; color:var(--gold); line-height:1.3; font-variant-numeric:tabular-nums; }
+.stat span { font-size:11.5px; color:var(--muted); }
+
+/* ── せってい ── */
+.field { display:flex; align-items:center; gap:10px; margin:0 0 10px; }
+.field label { flex:none; width:70px; font-size:13.5px; color:var(--muted); font-weight:700; }
+.field input {
+  flex:1; min-width:0; height:48px; padding:0 14px; border-radius:11px;
+  border:1px solid var(--line); background:var(--bg2); color:var(--text); font-size:16px;
+}
+.seg { display:flex; gap:8px; }
+.seg button { flex:1; min-height:52px; border-radius:12px; border:1.5px solid var(--line); background:var(--card2); cursor:pointer; font-size:15px; font-weight:700; }
+.seg button.on { border-color:var(--gold); background:#2f3a52; color:var(--gold); }
+textarea.io {
+  width:100%; height:130px; padding:12px; border-radius:12px; border:1px solid var(--line);
+  background:var(--bg2); color:var(--text); font-size:12px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; line-height:1.6;
+}
+.danger { color:#ff9a8a; border-color:rgba(255,154,138,.4); }
+
+/* ── しあげ ── */
+.finish { text-align:center; padding:26px 10px 4px; }
+.finish .em { font-size:66px; animation:pop .5s ease-out; }
+.finish .t { font-size:24px; font-weight:800; margin:6px 0; }
+@keyframes pop { 0%{transform:scale(.5);opacity:0} 60%{transform:scale(1.12)} 100%{transform:scale(1);opacity:1} }
+@media (prefers-reduced-motion:reduce) { .finish .em { animation:none } }
+
+/* ── しらせ ── */
+.toast {
+  position:fixed; left:50%; bottom:calc(var(--tab) + env(safe-area-inset-bottom) + 18px);
+  transform:translate(-50%,14px); opacity:0; transition:.25s; z-index:80;
+  background:#2b3550; border:1px solid var(--line); border-radius:12px;
+  padding:11px 18px; font-size:14px; font-weight:700; max-width:88vw; text-align:center;
+}
+.toast.go { transform:translate(-50%,0); opacity:1; }

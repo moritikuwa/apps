@@ -12,6 +12,7 @@
 |---|---|---|
 | [`yoilog/`](yoilog/) | **酔いログ** | 毎日の晩酌と、翌朝のからだ・眠りを記録して突き合わせる。飲んだ量が体に何をしているかを数字で見る |
 | [`seiza/`](seiza/) | **AI星座** | Claudeを使いこなす技を星座にして、いま自分に何が抜けているか・次に何をすれば最短で進むかを見る |
+| [`ikkomae/`](ikkomae/) | **いっこまえ** | ゴールから「じゃあ、いっこまえは？」を3回くだって、今日やる一歩まで降りる。親子で別々に道を作って見せ合う |
 
 ## 公開ページ
 
@@ -20,6 +21,7 @@ GitHub Pages を有効にすると、それぞれ次のURLで開けます。
 - 一覧　　　`https://moritikuwa.github.io/apps/`
 - 酔いログ　`https://moritikuwa.github.io/apps/yoilog/`
 - AI星座　　`https://moritikuwa.github.io/apps/seiza/`
+- いっこまえ　`https://moritikuwa.github.io/apps/ikkomae/`
 
 スマホでURLを開き、ブラウザの「ホーム画面に追加」を選ぶと、
 アプリのように全画面で起動し、圏外でも使えます。

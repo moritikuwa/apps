@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#131a26"/>
+  <!-- ゴールの星（いちばん上） -->
+  <path d="M46 11l2.3 4.7 5.2.8-3.8 3.7.9 5.2-4.6-2.5-4.6 2.5.9-5.2-3.8-3.7 5.2-.8z" fill="#ffd35e"/>
+  <!-- ゴールから 下へ おりる はしご -->
+  <g stroke="#5ecfb0" stroke-width="2.6" stroke-linecap="round">
+    <path d="M38 30h12"/>
+    <path d="M28 41h12"/>
+    <path d="M18 52h12"/>
+  </g>
+  <g stroke="#6d7d92" stroke-width="1.6" stroke-linecap="round" opacity=".75">
+    <path d="M44 32.5v6"/>
+    <path d="M34 43.5v6"/>
+  </g>
+  <!-- 「いっこまえ」を さす やじるし -->
+  <path d="M24 24l-6 6 6 6" fill="none" stroke="#f2a253" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M18 30h9" stroke="#f2a253" stroke-width="2.8" stroke-linecap="round"/>
+</svg>
