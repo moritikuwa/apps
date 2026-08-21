@@ -494,11 +494,13 @@
 
     setView('home');
 
+    /* ここから 圏外用（1ファイル版では build.js が この かたまりを 外します） */
     if ('serviceWorker' in navigator) {
       root.addEventListener('load', function () {
         navigator.serviceWorker.register('./sw.js').catch(function () {});
       });
     }
+    /* ここまで 圏外用 */
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

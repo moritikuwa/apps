@@ -1,0 +1,1731 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#131a26">
+<meta name="description" content="ゴールから「じゃあ、いっこまえは？」を3回くりかえして、今日やる一歩まで降りる。親子で別々に道を作って、あとで見せ合うアプリ。">
+<title>いっこまえ</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%20%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23131a26%22%2F%3E%20%3C!--%20%E3%82%B4%E3%83%BC%E3%83%AB%E3%81%AE%E6%98%9F%EF%BC%88%E3%81%84%E3%81%A1%E3%81%B0%E3%82%93%E4%B8%8A%EF%BC%89%20--%3E%20%3Cpath%20d%3D%22M46%2011l2.3%204.7%205.2.8-3.8%203.7.9%205.2-4.6-2.5-4.6%202.5.9-5.2-3.8-3.7%205.2-.8z%22%20fill%3D%22%23ffd35e%22%2F%3E%20%3C!--%20%E3%82%B4%E3%83%BC%E3%83%AB%E3%81%8B%E3%82%89%20%E4%B8%8B%E3%81%B8%20%E3%81%8A%E3%82%8A%E3%82%8B%20%E3%81%AF%E3%81%97%E3%81%94%20--%3E%20%3Cg%20stroke%3D%22%235ecfb0%22%20stroke-width%3D%222.6%22%20stroke-linecap%3D%22round%22%3E%20%3Cpath%20d%3D%22M38%2030h12%22%2F%3E%20%3Cpath%20d%3D%22M28%2041h12%22%2F%3E%20%3Cpath%20d%3D%22M18%2052h12%22%2F%3E%20%3C%2Fg%3E%20%3Cg%20stroke%3D%22%236d7d92%22%20stroke-width%3D%221.6%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.75%22%3E%20%3Cpath%20d%3D%22M44%2032.5v6%22%2F%3E%20%3Cpath%20d%3D%22M34%2043.5v6%22%2F%3E%20%3C%2Fg%3E%20%3C!--%20%E3%80%8C%E3%81%84%E3%81%A3%E3%81%93%E3%81%BE%E3%81%88%E3%80%8D%E3%82%92%20%E3%81%95%E3%81%99%20%E3%82%84%E3%81%98%E3%82%8B%E3%81%97%20--%3E%20%3Cpath%20d%3D%22M24%2024l-6%206%206%206%22%20fill%3D%22none%22%20stroke%3D%22%23f2a253%22%20stroke-width%3D%222.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%20%3Cpath%20d%3D%22M18%2030h9%22%20stroke%3D%22%23f2a253%22%20stroke-width%3D%222.8%22%20stroke-linecap%3D%22round%22%2F%3E%20%3C%2Fsvg%3E">
+<style>
+/* ============================================================
+   いっこまえ / IKKOMAE   見た目
+   小学校低学年が 一人で さわれること を いちばんに。
+   ・押せる ところは 大きく（さいてい 56px）
+   ・文字は 大きく、行は ゆったり
+   ・一つの 画面で 聞くことは 一つだけ
+   ============================================================ */
+:root {
+  --bg:#131a26;
+  --bg2:#0e141e;
+  --card:#1d2634;
+  --card2:#26324a;
+  --line:rgba(255,255,255,.10);
+  --text:#eef3f9;
+  --muted:#9dabbd;
+  --dim:#6d7d92;
+  --gold:#ffd35e;
+  --kid:#5ecfb0;
+  --adult:#f2a253;
+  --bar:54px;
+  --tab:64px;
+}
+
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { height:100%; }
+body {
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
+  line-height:1.8; font-size:16px; -webkit-font-smoothing:antialiased;
+  overscroll-behavior:none;
+}
+button { font:inherit; color:inherit; }
+
+/* ── 上のバー ── */
+.appbar {
+  position:fixed; top:0; left:0; right:0; z-index:40;
+  height:calc(var(--bar) + env(safe-area-inset-top)); padding-top:env(safe-area-inset-top);
+  background:linear-gradient(180deg,#182031 0%,rgba(24,32,49,.93) 100%);
+  border-bottom:1px solid var(--line); backdrop-filter:blur(8px);
+}
+.appbar-in { display:flex; align-items:center; gap:10px; height:var(--bar); padding:0 14px; max-width:720px; margin:0 auto; }
+.logo { font-weight:800; letter-spacing:.08em; font-size:16px; }
+.logo b { color:var(--gold); }
+.spacer { flex:1; }
+#hud-fire { font-size:14px; font-weight:700; color:var(--gold); font-variant-numeric:tabular-nums; }
+#hud-fire.off { color:var(--dim); filter:grayscale(1); }
+.iconbtn {
+  width:40px; height:40px; border-radius:11px; border:1px solid var(--line);
+  background:var(--card); font-size:17px; cursor:pointer; flex:none;
+}
+
+/* ── 本体 ── */
+.main { max-width:720px; margin:0 auto; padding:calc(var(--bar) + env(safe-area-inset-top) + 16px) 16px calc(var(--tab) + env(safe-area-inset-bottom) + 28px); }
+body.noTab .main { padding-bottom:calc(env(safe-area-inset-bottom) + 28px); }
+
+/* ── 下のタブ ── */
+.tabbar {
+  position:fixed; left:0; right:0; bottom:0; z-index:40;
+  height:calc(var(--tab) + env(safe-area-inset-bottom)); padding-bottom:env(safe-area-inset-bottom);
+  background:rgba(16,22,33,.96); border-top:1px solid var(--line); backdrop-filter:blur(8px);
+}
+body.noTab .tabbar { display:none; }
+.tabbar-in { display:flex; height:var(--tab); max-width:720px; margin:0 auto; }
+.tabbar-in button {
+  flex:1; background:none; border:0; cursor:pointer; color:var(--dim);
+  font-size:11.5px; font-weight:700; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+}
+.tabbar-in button .i { font-size:21px; line-height:1; }
+.tabbar-in button.on { color:var(--gold); }
+
+/* ── 共通のふだ ── */
+.panel { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; margin:0 0 14px; }
+.h { font-size:13px; font-weight:800; color:var(--muted); letter-spacing:.06em; margin:0 0 10px; }
+.sub { font-size:13.5px; color:var(--muted); line-height:1.75; margin:0; }
+.center { text-align:center; }
+
+/* ── おおきなボタン ── */
+.big {
+  display:block; width:100%; min-height:62px; border-radius:16px; border:0; cursor:pointer;
+  background:linear-gradient(180deg,#ffe08a,#f0bd42); color:#221a05;
+  font-size:19px; font-weight:800; letter-spacing:.04em; margin:14px 0 0;
+  box-shadow:0 6px 0 #a8801f; transition:transform .06s, box-shadow .06s;
+}
+.big:active { transform:translateY(4px); box-shadow:0 2px 0 #a8801f; }
+.big.ghost { background:var(--card2); color:var(--text); box-shadow:0 6px 0 #141b27; }
+.big.ghost:active { box-shadow:0 2px 0 #141b27; }
+.big[disabled] { opacity:.4; box-shadow:none; cursor:default; transform:none; }
+.mini {
+  min-height:44px; padding:0 16px; border-radius:11px; border:1px solid var(--line);
+  background:var(--card2); cursor:pointer; font-size:14px; font-weight:700;
+}
+.row { display:flex; gap:10px; flex-wrap:wrap; }
+.row > .mini { flex:1; min-width:130px; }
+
+/* ── きょうの おだい ── */
+.theme {
+  background:linear-gradient(160deg,#243049,#1a2233);
+  border:1px solid var(--line); border-radius:20px; padding:22px 18px; text-align:center;
+}
+.theme .tag { display:inline-block; font-size:11.5px; font-weight:800; padding:3px 12px; border-radius:99px; background:rgba(255,255,255,.09); letter-spacing:.06em; }
+.theme .em { font-size:52px; line-height:1.2; margin:8px 0 2px; }
+.theme .lab { font-size:12px; color:var(--gold); font-weight:800; letter-spacing:.12em; margin-bottom:4px; }
+.theme .goal { font-size:21px; font-weight:800; line-height:1.6; }
+
+/* ── みち（はしご） ── */
+.road { margin:6px 0 0; }
+.rung {
+  position:relative; background:var(--card); border:1px solid var(--line); border-radius:14px;
+  padding:13px 14px 13px 46px; margin:0 0 8px; font-size:15.5px; line-height:1.6;
+}
+.rung .n {
+  position:absolute; left:12px; top:12px; width:24px; height:24px; border-radius:50%;
+  background:var(--card2); color:var(--muted); font-size:12px; font-weight:800;
+  display:flex; align-items:center; justify-content:center;
+}
+.rung.goal { background:linear-gradient(180deg,#33406040,#1d2634); border-color:rgba(255,211,94,.45); padding-left:46px; }
+.rung.goal .n { background:var(--gold); color:#221a05; }
+.rung.blank { border-style:dashed; color:var(--dim); font-size:14px; padding-top:10px; padding-bottom:10px; }
+.rung.blank .n { top:9px; }
+.rung .sz { float:right; color:var(--dim); font-size:11px; letter-spacing:.14em; margin-left:8px; }
+.arrow { text-align:center; color:var(--dim); font-size:16px; line-height:1; margin:-2px 0 6px; }
+
+/* ── といかけ ── */
+.ask {
+  text-align:center; font-size:24px; font-weight:800; letter-spacing:.02em;
+  margin:20px 0 4px; line-height:1.5;
+}
+.ask small { display:block; font-size:13px; font-weight:700; color:var(--muted); letter-spacing:.06em; margin-top:4px; }
+.count { text-align:center; font-size:12px; font-weight:800; color:var(--gold); letter-spacing:.14em; font-variant-numeric:tabular-nums; }
+
+/* ── てふだ ── */
+.hand { display:grid; grid-template-columns:1fr; gap:10px; margin:14px 0 0; }
+@media (min-width:520px) { .hand { grid-template-columns:1fr 1fr; } }
+.pick {
+  text-align:left; width:100%; min-height:60px; padding:14px 16px; cursor:pointer;
+  background:var(--card); border:1.5px solid var(--line); border-radius:14px;
+  font-size:16px; line-height:1.6; font-weight:600;
+  transition:transform .07s, border-color .12s, background .12s;
+}
+.pick:active { transform:scale(.97); }
+.pick:hover { border-color:var(--gold); }
+.pick.chosen { border-color:var(--gold); background:#2c3549; }
+
+/* ── ばんの わたし ── */
+.handoff { text-align:center; padding:34px 12px 8px; }
+.handoff .em { font-size:64px; }
+.handoff .who { font-size:26px; font-weight:800; margin:8px 0 2px; }
+.handoff .note { color:var(--muted); font-size:14px; }
+
+/* ── みくらべ ── */
+.compare { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; align-items:stretch; }
+.compare.one { grid-template-columns:1fr; }
+.cname { font-size:13px; font-weight:800; text-align:center; padding:6px 0; border-radius:10px; }
+.cname.kid { background:rgba(94,207,176,.16); color:var(--kid); }
+.cname.adult { background:rgba(242,162,83,.16); color:var(--adult); }
+.crung {
+  background:var(--card); border:1px solid var(--line); border-radius:12px;
+  padding:10px 11px; font-size:14px; line-height:1.65;
+}
+.crung .sz { display:block; color:var(--dim); font-size:10.5px; letter-spacing:.16em; margin-bottom:2px; }
+.crung.same { border-color:var(--gold); background:#2a3247; }
+.samemark { text-align:center; font-size:11.5px; color:var(--gold); font-weight:800; margin:-3px 0 8px; }
+.shape { background:var(--card2); border:1px solid var(--line); border-radius:14px; padding:14px 16px; margin-top:14px; }
+.shape .t { font-size:16px; font-weight:800; margin-bottom:4px; }
+.shape .b { font-size:13.5px; color:var(--muted); line-height:1.8; }
+.shape .m { font-size:26px; float:right; margin-left:10px; }
+
+/* ── やくそく ── */
+.promise { background:linear-gradient(160deg,#2b3550,#1c2434); border:1px solid rgba(255,211,94,.35); border-radius:16px; padding:18px; text-align:center; }
+.promise .lab { font-size:12px; font-weight:800; color:var(--gold); letter-spacing:.12em; }
+.promise .t { font-size:19px; font-weight:800; line-height:1.6; margin:8px 0 2px; }
+.promise .by { font-size:12.5px; color:var(--muted); }
+
+/* ── きろく ── */
+.logitem { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; margin:0 0 10px; }
+.logitem .top { display:flex; align-items:center; gap:10px; }
+.logitem .em { font-size:26px; }
+.logitem .g { font-weight:800; font-size:15px; line-height:1.5; flex:1; }
+.logitem .d { font-size:11.5px; color:var(--dim); font-variant-numeric:tabular-nums; }
+.logitem .todo { margin-top:10px; padding:10px 12px; border-radius:11px; background:var(--card2); font-size:13.5px; }
+.logitem .todo.ok { background:rgba(94,207,176,.14); color:var(--kid); }
+.stats { display:flex; gap:10px; }
+.stat { flex:1; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 10px; text-align:center; }
+.stat b { display:block; font-size:26px; font-weight:800; color:var(--gold); line-height:1.3; font-variant-numeric:tabular-nums; }
+.stat span { font-size:11.5px; color:var(--muted); }
+
+/* ── せってい ── */
+.field { display:flex; align-items:center; gap:10px; margin:0 0 10px; }
+.field label { flex:none; width:70px; font-size:13.5px; color:var(--muted); font-weight:700; }
+.field input {
+  flex:1; min-width:0; height:48px; padding:0 14px; border-radius:11px;
+  border:1px solid var(--line); background:var(--bg2); color:var(--text); font-size:16px;
+}
+.seg { display:flex; gap:8px; }
+.seg button { flex:1; min-height:52px; border-radius:12px; border:1.5px solid var(--line); background:var(--card2); cursor:pointer; font-size:15px; font-weight:700; }
+.seg button.on { border-color:var(--gold); background:#2f3a52; color:var(--gold); }
+textarea.io {
+  width:100%; height:130px; padding:12px; border-radius:12px; border:1px solid var(--line);
+  background:var(--bg2); color:var(--text); font-size:12px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; line-height:1.6;
+}
+.danger { color:#ff9a8a; border-color:rgba(255,154,138,.4); }
+
+/* ── しあげ ── */
+.finish { text-align:center; padding:26px 10px 4px; }
+.finish .em { font-size:66px; animation:pop .5s ease-out; }
+.finish .t { font-size:24px; font-weight:800; margin:6px 0; }
+@keyframes pop { 0%{transform:scale(.5);opacity:0} 60%{transform:scale(1.12)} 100%{transform:scale(1);opacity:1} }
+@media (prefers-reduced-motion:reduce) { .finish .em { animation:none } }
+
+/* ── しらせ ── */
+.toast {
+  position:fixed; left:50%; bottom:calc(var(--tab) + env(safe-area-inset-bottom) + 18px);
+  transform:translate(-50%,14px); opacity:0; transition:.25s; z-index:80;
+  background:#2b3550; border:1px solid var(--line); border-radius:12px;
+  padding:11px 18px; font-size:14px; font-weight:700; max-width:88vw; text-align:center;
+}
+.toast.go { transform:translate(-50%,0); opacity:1; }
+
+</style>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+
+<header class="appbar">
+  <div class="appbar-in">
+    <div class="logo">いっこ<b>まえ</b></div>
+    <div class="spacer"></div>
+    <div id="hud-fire" class="off">🔥<b>0</b></div>
+    <button class="iconbtn" id="hud-quit" title="やめる" style="display:none">✕</button>
+  </div>
+</header>
+
+<main id="app" class="main"></main>
+
+<nav class="tabbar">
+  <div class="tabbar-in" id="tabbar">
+    <button data-view="home"><span class="i">🪜</span>あそぶ</button>
+    <button data-view="log"><span class="i">📒</span>きろく</button>
+    <button data-view="settings"><span class="i">⚙️</span>せってい</button>
+  </div>
+</nav>
+
+<script>
+/* ============================================================
+   いっこまえ / IKKOMAE   おだいのデータ
+   ------------------------------------------------------------
+   ゴールを一つ決めて、そこから「いっこまえは？」を3回くだる。
+   カードは3つの高さに分けてある。
+
+     s:3  ゴールの すぐ手前。もう ほとんど できている状態
+     s:2  とちゅう。まだ先は あるけれど、半分は 進んだ状態
+     s:1  いちばん さいしょ。いますぐ 手が うごく 一歩
+
+   正解は決めない。どのカードを選んでも道になる。
+   高さを混ぜて配ることで「いま これを えらぶと 大きすぎないか」を
+   自分で はかる練習になる。ここがこのアプリの芯。
+
+   文字は小学校低学年が一人で読める量にする。
+   ひらがな中心、漢字は1〜2年で習うものまで。
+   ============================================================ */
+(function (root) {
+  'use strict';
+
+  var IK = root.IK || (root.IK = {});
+
+  IK.THEMES = [
+
+    /* ── くらし ───────────────────────────────── */
+    {
+      id: 'heya', emoji: '🧹', tag: 'くらし',
+      goal: 'へやが ぜんぶ かたづいた',
+      cards: [
+        { t: 'ゆかに 何も おちていない', s: 3 },
+        { t: '本が ぜんぶ 本だなに ならんだ', s: 3 },
+        { t: 'つくえの 上に ランドセルだけに なった', s: 3 },
+        { t: 'ごみぶくろを しばって げんかんに おいた', s: 3 },
+        { t: 'おもちゃを はこに もどした', s: 2 },
+        { t: 'いらない かみを ごみに した', s: 2 },
+        { t: 'ふくを たたんで 引き出しに 入れた', s: 2 },
+        { t: 'ゆかの ものを ぜんぶ ベッドの 上に あつめた', s: 2 },
+        { t: 'タイマーを 5分 かけた', s: 1 },
+        { t: 'ごみぶくろを 一まい ひろげた', s: 1 },
+        { t: 'どこから やるか 一つ きめた', s: 1 },
+        { t: 'まず ゆかの ものだけ ひろうと きめた', s: 1 }
+      ]
+    },
+    {
+      id: 'asita', emoji: '🎒', tag: 'くらし',
+      goal: 'あしたの がっこうの じゅんびが おわった',
+      cards: [
+        { t: 'ランドセルを げんかんに おいた', s: 3 },
+        { t: 'あした きる ふくを いすに かけた', s: 3 },
+        { t: 'すいとうを つめて れいぞうこに 入れた', s: 3 },
+        { t: 'れんらくちょうに サインを もらった', s: 3 },
+        { t: '時間わりの とおりに 教かしょを 入れた', s: 2 },
+        { t: 'ふでばこの えんぴつを けずった', s: 2 },
+        { t: 'ていしゅつする ものを つくえに ならべた', s: 2 },
+        { t: '体そう ふくが せんたく できているか 見た', s: 2 },
+        { t: 'れんらくちょうを ひらいた', s: 1 },
+        { t: 'あしたが 何よう日か たしかめた', s: 1 },
+        { t: 'ランドセルの 中を ぜんぶ 出した', s: 1 },
+        { t: 'ゲームを おいて つくえの前に すわった', s: 1 }
+      ]
+    },
+    {
+      id: 'curry', emoji: '🍛', tag: 'つくる',
+      goal: 'カレーが できあがった',
+      cards: [
+        { t: 'おさらに ごはんと カレーを もった', s: 3 },
+        { t: 'ルーを 入れて 10分 にこんだ', s: 3 },
+        { t: 'にんじんが やわらかく なった', s: 3 },
+        { t: 'テーブルに スプーンを ならべた', s: 3 },
+        { t: 'やさいを 火に かけた', s: 2 },
+        { t: 'にんじんと じゃがいもを 切った', s: 2 },
+        { t: 'たりない ざいりょうを 買ってきた', s: 2 },
+        { t: 'なべを こんろに 出した', s: 2 },
+        { t: '手を あらって エプロンを つけた', s: 1 },
+        { t: 'れいぞうこを あけて 中を 見た', s: 1 },
+        { t: 'つくりかたを こえに 出して 読んだ', s: 1 },
+        { t: 'なんにん分 つくるか きめた', s: 1 }
+      ]
+    },
+    {
+      id: 'ofuro', emoji: '🛁', tag: 'くらし',
+      goal: 'おふろから 出て ねる じゅんびが できた',
+      cards: [
+        { t: 'かみを かわかして パジャマを きた', s: 3 },
+        { t: 'はを みがきおわった', s: 3 },
+        { t: 'ぬいだ ふくを せんたくかごに 入れた', s: 3 },
+        { t: 'あしたの じゅんびが 目の前に そろっている', s: 3 },
+        { t: 'あたまと からだを あらった', s: 2 },
+        { t: 'おふろに 入った', s: 2 },
+        { t: 'きがえと タオルを 出した', s: 2 },
+        { t: 'テレビを けした', s: 2 },
+        { t: '時計を 見て 何時か たしかめた', s: 1 },
+        { t: 'おふろの おゆが たまっているか 見に行った', s: 1 },
+        { t: 'あと何分で 入るか きめた', s: 1 },
+        { t: '「もう入るね」と こえに 出した', s: 1 }
+      ]
+    },
+    {
+      id: 'sentaku', emoji: '🧺', tag: 'くらし',
+      goal: 'せんたくものが ぜんぶ たたんで しまえた',
+      cards: [
+        { t: 'たたんだ ふくを 引き出しに しまった', s: 3 },
+        { t: 'ぜんぶ たたみおわった', s: 3 },
+        { t: 'かぞくごとに 山を 分けた', s: 3 },
+        { t: 'ハンガーを もとの ばしょに もどした', s: 3 },
+        { t: 'ソファの上に ぜんぶ おろした', s: 2 },
+        { t: 'かわいた ものだけ とりこんだ', s: 2 },
+        { t: 'くつ下の ペアを さがした', s: 2 },
+        { t: 'たたみ方を 一つ 教えてもらった', s: 2 },
+        { t: 'ベランダに 出て さわってみた', s: 1 },
+        { t: 'かごを もってきた', s: 1 },
+        { t: 'どっちの 山から やるか きめた', s: 1 },
+        { t: 'すきな きょくを かけた', s: 1 }
+      ]
+    },
+    {
+      id: 'asa', emoji: '⏰', tag: 'くらし',
+      goal: 'あさ、ちこくしないで 家を 出られた',
+      cards: [
+        { t: 'くつを はいて げんかんの ドアを あけた', s: 3 },
+        { t: 'ランドセルを せおった', s: 3 },
+        { t: '出る 5分前に ぜんぶ おわっていた', s: 3 },
+        { t: 'あさごはんを 食べおわった', s: 3 },
+        { t: 'かおを あらって ふくを きがえた', s: 2 },
+        { t: '目ざましが なって すぐ おきた', s: 2 },
+        { t: 'あさに やることを ぜんぶ 書き出した', s: 2 },
+        { t: '出る時間を きめて 紙に はった', s: 2 },
+        { t: 'よるに 目ざましを セットした', s: 1 },
+        { t: 'よるの うちに ふくを 出した', s: 1 },
+        { t: 'ねる時間を 10分 早めた', s: 1 },
+        { t: '何時に 出れば まにあうか かぞえた', s: 1 }
+      ]
+    },
+    {
+      id: 'daidokoro', emoji: '🍽', tag: 'くらし',
+      goal: 'ごはんの あとの 台どころが ぴかぴかに なった',
+      cards: [
+        { t: 'テーブルを ふきおわった', s: 3 },
+        { t: 'あらった おさらを かたづけた', s: 3 },
+        { t: 'ながしに 何も のこっていない', s: 3 },
+        { t: 'ごみを まとめて すてた', s: 3 },
+        { t: 'おさらを あらった', s: 2 },
+        { t: 'のこった りょうりを ようきに 入れた', s: 2 },
+        { t: 'おさらを ながしに はこんだ', s: 2 },
+        { t: 'おさらの よごれを 水で ながした', s: 2 },
+        { t: 'そでを まくった', s: 1 },
+        { t: 'スポンジと せんざいを 出した', s: 1 },
+        { t: '「わたし あらうね」と 言った', s: 1 },
+        { t: 'どこまで やるか きめた', s: 1 }
+      ]
+    },
+    {
+      id: 'kaimono', emoji: '🛒', tag: 'おかね',
+      goal: 'スーパーで ひつような ものを 買いおわった',
+      cards: [
+        { t: 'ふくろに つめて 家に かえった', s: 3 },
+        { t: 'レジで お金を はらった', s: 3 },
+        { t: 'メモの ぜんぶに 〇が ついた', s: 3 },
+        { t: 'よさんの 中に おさまった', s: 3 },
+        { t: 'やさいコーナーを 見に行った', s: 2 },
+        { t: 'ねだんを くらべて 安いほうを えらんだ', s: 2 },
+        { t: 'かごを もって 店に 入った', s: 2 },
+        { t: 'どの じゅんばんで まわるか きめた', s: 2 },
+        { t: 'れいぞうこの 中を 見た', s: 1 },
+        { t: '買う ものを メモに 書いた', s: 1 },
+        { t: 'いくらまで 使えるか きめた', s: 1 },
+        { t: 'エコバッグを かばんに 入れた', s: 1 }
+      ]
+    },
+
+    /* ── できるようになる ───────────────────────── */
+    {
+      id: 'cheer', emoji: '🤸', tag: 'できるように',
+      goal: 'チアの あたらしい わざが できるように なった',
+      cards: [
+        { t: 'みんなの 前で さいごまで やれた', s: 3 },
+        { t: '一人で 5回 つづけて できた', s: 3 },
+        { t: 'こわくなくなって 力が ぬけた', s: 3 },
+        { t: 'おわりの ポーズまで きまった', s: 3 },
+        { t: 'ほじょ してもらって できた', s: 2 },
+        { t: 'わざを 3つに 分けて 一つずつ れんしゅうした', s: 2 },
+        { t: 'まえの わざが かんぺきに できるように なった', s: 2 },
+        { t: 'できる子の うごきを どうがで 見た', s: 2 },
+        { t: '体を やわらかく する ストレッチを した', s: 1 },
+        { t: '先生に 「何から やればいい？」と 聞いた', s: 1 },
+        { t: 'マットの上で 一回だけ ためした', s: 1 },
+        { t: 'どこが こわいのか 書き出した', s: 1 }
+      ]
+    },
+    {
+      id: 'jitensha', emoji: '🚲', tag: 'できるように',
+      goal: 'じてんしゃに 一人で のれるように なった',
+      cards: [
+        { t: 'こうえんを 一しゅう 一人で まわれた', s: 3 },
+        { t: 'まがりながら すすめた', s: 3 },
+        { t: '止まりたい ところで 止まれた', s: 3 },
+        { t: '手を はなしてもらっても すすんだ', s: 3 },
+        { t: 'うしろを ささえてもらって 10メートル すすんだ', s: 2 },
+        { t: '足で 地めんを けって バランスを とれた', s: 2 },
+        { t: 'ブレーキの かけ方を おぼえた', s: 2 },
+        { t: 'こがずに すすむ れんしゅうを した', s: 2 },
+        { t: 'ヘルメットを かぶった', s: 1 },
+        { t: 'サドルの 高さを 合わせた', s: 1 },
+        { t: 'ひろい ところを さがした', s: 1 },
+        { t: 'じてんしゃに またがってみた', s: 1 }
+      ]
+    },
+    {
+      id: 'sakaagari', emoji: '🤸‍♀️', tag: 'できるように',
+      goal: 'てつぼうの さかあがりが できるように なった',
+      cards: [
+        { t: '一人で 3回 つづけて まわれた', s: 3 },
+        { t: 'ほじょなしで 一回 まわれた', s: 3 },
+        { t: 'まわったあと おりるまで できた', s: 3 },
+        { t: 'クラスの みんなの 前で できた', s: 3 },
+        { t: 'せなかを おしてもらって まわれた', s: 2 },
+        { t: 'ふとんほしで 5びょう とまれた', s: 2 },
+        { t: 'ひじを まげて てつぼうに 体を 近づけられた', s: 2 },
+        { t: 'けりあげる 足を どっちにするか きめた', s: 2 },
+        { t: 'てつぼうを にぎってみた', s: 1 },
+        { t: 'できる子の やり方を よこで 見た', s: 1 },
+        { t: 'ちょうど いい 高さの てつぼうを さがした', s: 1 },
+        { t: '手が いたくならない にぎり方を 教わった', s: 1 }
+      ]
+    },
+    {
+      id: 'nawatobi', emoji: '🪢', tag: 'できるように',
+      goal: 'なわとびの 二じゅうとびが できるように なった',
+      cards: [
+        { t: 'つづけて 5回 とべた', s: 3 },
+        { t: '一回 とべた', s: 3 },
+        { t: 'まえとびの あいだに 一回 まぜられた', s: 3 },
+        { t: 'テストで ごうかくした', s: 3 },
+        { t: '高く とぶ れんしゅうを した', s: 2 },
+        { t: 'なわを はやく まわす れんしゅうを した', s: 2 },
+        { t: 'まえとびを 100回 つづけられた', s: 2 },
+        { t: 'なわなしで うでを 二回 まわして とんだ', s: 2 },
+        { t: 'なわの 長さを 体に 合わせた', s: 1 },
+        { t: '毎日 何分 やるか きめた', s: 1 },
+        { t: 'とべる子に コツを 聞いた', s: 1 },
+        { t: 'なわとびを かばんに 入れた', s: 1 }
+      ]
+    },
+    {
+      id: 'oyogu', emoji: '🏊', tag: 'できるように',
+      goal: '25メートル およげるように なった',
+      cards: [
+        { t: 'とちゅうで 立たずに むこうまで ついた', s: 3 },
+        { t: '15メートル およげた', s: 3 },
+        { t: 'いきつぎを しながら すすめた', s: 3 },
+        { t: 'およぎおわっても くるしくなかった', s: 3 },
+        { t: 'ビート板で バタ足だけで すすめた', s: 2 },
+        { t: '顔を つけて 5びょう うかべた', s: 2 },
+        { t: '水の中で いきを はけた', s: 2 },
+        { t: '手の かき方を 教わった', s: 2 },
+        { t: 'プールに 入って 水を かおに かけた', s: 1 },
+        { t: 'ゴーグルを つけた', s: 1 },
+        { t: '足の つく ところで 立ってみた', s: 1 },
+        { t: 'どこが こわいか 先生に 言った', s: 1 }
+      ]
+    },
+    {
+      id: 'kuku', emoji: '✖️', tag: 'べんきょう',
+      goal: '九九を ぜんぶ 言えるように なった',
+      cards: [
+        { t: '1のだんから 9のだんまで 止まらずに 言えた', s: 3 },
+        { t: 'バラバラに 聞かれても 答えられた', s: 3 },
+        { t: 'テストで ぜんもん 正かいした', s: 3 },
+        { t: '一ばん にがてな だんが 言えるように なった', s: 3 },
+        { t: '7のだんだけ 何回も くりかえした', s: 2 },
+        { t: 'どの だんが にがてか 見つけた', s: 2 },
+        { t: 'おふろで 一だんずつ 言った', s: 2 },
+        { t: 'まちがえた ところに 印を つけた', s: 2 },
+        { t: '九九ひょうを かべに はった', s: 1 },
+        { t: '毎日 いつ やるか きめた', s: 1 },
+        { t: '一だんだけ 声に出して 読んだ', s: 1 },
+        { t: 'カードを 作った', s: 1 }
+      ]
+    },
+    {
+      id: 'piano', emoji: '🎹', tag: 'できるように',
+      goal: 'はっぴょう会で さいごまで ひけた',
+      cards: [
+        { t: 'ぶたいで 止まらずに ひきおわった', s: 3 },
+        { t: 'おじぎまで きんちょうせずに できた', s: 3 },
+        { t: '目を つぶっても ひける ところが ふえた', s: 3 },
+        { t: '家ぞくの 前で とおしで ひけた', s: 3 },
+        { t: 'さいしょから さいごまで つなげて ひけた', s: 2 },
+        { t: 'にがてな 4しょうせつだけ くりかえした', s: 2 },
+        { t: '右手と 左手を 合わせられた', s: 2 },
+        { t: '右手だけ さいごまで ひけた', s: 2 },
+        { t: 'きょくを 3つに 分けた', s: 1 },
+        { t: 'まちがえる ところに 印を つけた', s: 1 },
+        { t: '毎日 何分 ひくか きめた', s: 1 },
+        { t: 'ピアノの ふたを あけた', s: 1 }
+      ]
+    },
+    {
+      id: 'soccer', emoji: '⚽', tag: 'できるように',
+      goal: 'しあいで シュートを 一本 きめた',
+      cards: [
+        { t: 'ゴールの すみに ボールが 入った', s: 3 },
+        { t: 'しあいで シュートを うてた', s: 3 },
+        { t: 'パスを もらえる ばしょに 走れた', s: 3 },
+        { t: 'れんしゅうじあいで 一本 きめた', s: 3 },
+        { t: '止まった ボールを ねらった ところに けれた', s: 2 },
+        { t: '走りながら ボールを けれた', s: 2 },
+        { t: 'ける 足の いちを おぼえた', s: 2 },
+        { t: 'かべあて を 毎日 やった', s: 2 },
+        { t: 'ボールに くうきを 入れた', s: 1 },
+        { t: 'コーチに 「何が 足りない？」と 聞いた', s: 1 },
+        { t: 'どこから シュートしたいか きめた', s: 1 },
+        { t: 'うまい人の どうがを 一本 見た', s: 1 }
+      ]
+    },
+    {
+      id: 'kanji', emoji: '✍️', tag: 'べんきょう',
+      goal: 'かん字テストで 100てんを とった',
+      cards: [
+        { t: 'テストで ぜんぶ 書けた', s: 3 },
+        { t: 'まえの日に やった れんしゅうで ぜんもん 書けた', s: 3 },
+        { t: 'とめ・はね・はらい まで 正しく 書けた', s: 3 },
+        { t: 'にがてだった 3つが 書けるように なった', s: 3 },
+        { t: 'まちがえた かん字だけ もう一回 やった', s: 2 },
+        { t: '書けない かん字が どれか わかった', s: 2 },
+        { t: '一回 じぶんで テストしてみた', s: 2 },
+        { t: 'つかい方を たん語で おぼえた', s: 2 },
+        { t: 'テストの はんいを たしかめた', s: 1 },
+        { t: 'ノートと えんぴつを 出した', s: 1 },
+        { t: '何日 前から やるか きめた', s: 1 },
+        { t: '一日 何こ おぼえるか かぞえた', s: 1 }
+      ]
+    },
+    {
+      id: 'hon', emoji: '📚', tag: 'べんきょう',
+      goal: 'あつい 本を 一さつ 読みおわった',
+      cards: [
+        { t: 'さいごの ページを とじた', s: 3 },
+        { t: 'のこり 10ページに なった', s: 3 },
+        { t: 'はんぶんを こえた', s: 3 },
+        { t: 'おもしろく なってきて 止まらなくなった', s: 3 },
+        { t: '毎日 読む ページ数を きめた', s: 2 },
+        { t: '3日 つづけて 読めた', s: 2 },
+        { t: 'さいしょの 1しょうを 読みおえた', s: 2 },
+        { t: 'わからない ことばを 一つ 調べた', s: 2 },
+        { t: '本を まくらもとに おいた', s: 1 },
+        { t: 'ぜんぶで 何ページか 見た', s: 1 },
+        { t: 'いつ 読むか きめた', s: 1 },
+        { t: 'さいしょの 1ページだけ 読んだ', s: 1 }
+      ]
+    },
+
+    /* ── つくる ───────────────────────────────── */
+    {
+      id: 'jiyuu', emoji: '🎨', tag: 'つくる',
+      goal: 'じゆうけんきゅうが かんせいした',
+      cards: [
+        { t: 'まとめた 紙を ランドセルに 入れた', s: 3 },
+        { t: 'わかった ことを 紙に 書きおえた', s: 3 },
+        { t: 'しゃしんを はって かざりつけた', s: 3 },
+        { t: 'だれかに 見せて かんそうを もらった', s: 3 },
+        { t: '毎日 きろくを つけた', s: 2 },
+        { t: 'じっけんを 一回 やってみた', s: 2 },
+        { t: 'ひつような ざいりょうを そろえた', s: 2 },
+        { t: 'どうやって 調べるか きめた', s: 2 },
+        { t: '何を 調べたいか 一つに しぼった', s: 1 },
+        { t: '気になる ことを 5つ 書き出した', s: 1 },
+        { t: 'ていしゅつの 日を カレンダーに 書いた', s: 1 },
+        { t: '本や ネットで 一つ 見てみた', s: 1 }
+      ]
+    },
+    {
+      id: 'pancake', emoji: '🥞', tag: 'つくる',
+      goal: 'ホットケーキが やけた',
+      cards: [
+        { t: 'おさらに のせて バターを おいた', s: 3 },
+        { t: 'ひっくりかえして 3分 やいた', s: 3 },
+        { t: 'あわが ぷつぷつ 出てきた', s: 3 },
+        { t: 'フライパンに たねを ながした', s: 3 },
+        { t: 'たねを まぜおわった', s: 2 },
+        { t: 'たまごと 牛にゅうを 入れた', s: 2 },
+        { t: 'こなを ボウルに 入れた', s: 2 },
+        { t: 'フライパンを あたためた', s: 2 },
+        { t: '手を あらった', s: 1 },
+        { t: 'つくりかたを 読んだ', s: 1 },
+        { t: 'ボウルと あわだてきを 出した', s: 1 },
+        { t: 'ざいりょうが そろっているか 見た', s: 1 }
+      ]
+    },
+    {
+      id: 'kichi', emoji: '🏠', tag: 'つくる',
+      goal: 'だんボールで ひみつきちが できた',
+      cards: [
+        { t: '中に 入って すわれた', s: 3 },
+        { t: 'まどと ドアが ついた', s: 3 },
+        { t: 'やねを のせても つぶれなかった', s: 3 },
+        { t: '中に すきな ものを かざった', s: 3 },
+        { t: 'かべを 4まい 立てた', s: 2 },
+        { t: 'だんボールを ガムテープで つないだ', s: 2 },
+        { t: '大きい だんボールを 3つ あつめた', s: 2 },
+        { t: 'どこに 作るか ばしょを きめた', s: 2 },
+        { t: '絵で かたちを かいてみた', s: 1 },
+        { t: 'ハサミと テープを 出した', s: 1 },
+        { t: 'どのくらいの 大きさに するか きめた', s: 1 },
+        { t: 'お母さんに だんボールを もらえるか 聞いた', s: 1 }
+      ]
+    },
+    {
+      id: 'present', emoji: '🎁', tag: 'つくる',
+      goal: 'お母さんへの プレゼントが わたせた',
+      cards: [
+        { t: '「ありがとう」と 言ってもらえた', s: 3 },
+        { t: 'かくして おいて その日に わたした', s: 3 },
+        { t: 'ラッピングして 手紙を つけた', s: 3 },
+        { t: 'プレゼントが できあがった', s: 3 },
+        { t: '手作りする ものを 作りはじめた', s: 2 },
+        { t: 'お金が たりるか かぞえた', s: 2 },
+        { t: '何を あげるか 一つに きめた', s: 2 },
+        { t: 'お父さんに そうだんした', s: 2 },
+        { t: 'いつ わたすか 日を きめた', s: 1 },
+        { t: 'お母さんが すきな ものを 思い出した', s: 1 },
+        { t: 'こうさくの ざいりょうを 見に行った', s: 1 },
+        { t: 'ないしょに すると きめた', s: 1 }
+      ]
+    },
+    {
+      id: 'douga', emoji: '🎬', tag: 'つくる',
+      goal: 'じぶんで つくった どうがが かんせいした',
+      cards: [
+        { t: '家ぞくに 見せた', s: 3 },
+        { t: '音楽と 字を 入れて できあがった', s: 3 },
+        { t: 'いらない ところを 切った', s: 3 },
+        { t: 'とりたい ばめんが ぜんぶ とれた', s: 3 },
+        { t: 'さいしょの ばめんを とった', s: 2 },
+        { t: 'どんな じゅんばんで 見せるか きめた', s: 2 },
+        { t: 'カメラの おき方を ためした', s: 2 },
+        { t: 'なにを つたえる どうがか きめた', s: 2 },
+        { t: 'すきな どうがを 一本 見て まねしたい所を さがした', s: 1 },
+        { t: 'なんぷんの どうがに するか きめた', s: 1 },
+        { t: 'スマホの ざんりょうを たしかめた', s: 1 },
+        { t: '紙に ばめんを 4つ かいた', s: 1 }
+      ]
+    },
+
+    /* ── おかね・じかん ─────────────────────────── */
+    {
+      id: 'okane', emoji: '💰', tag: 'おかね',
+      goal: 'ほしい ものを じぶんの お金で 買えた',
+      cards: [
+        { t: 'レジで じぶんで はらった', s: 3 },
+        { t: 'ひつような 金がくが たまった', s: 3 },
+        { t: 'あと 500円まで きた', s: 3 },
+        { t: 'はんぶん たまった', s: 3 },
+        { t: '毎月 きめた ぶんを ちょきんばこに 入れた', s: 2 },
+        { t: 'ほしくなった 別の ものを がまんした', s: 2 },
+        { t: '月に いくら ためれば いいか 計算した', s: 2 },
+        { t: 'お手つだいで 少し ふやした', s: 2 },
+        { t: 'ねだんを 調べた', s: 1 },
+        { t: 'いま いくら もっているか かぞえた', s: 1 },
+        { t: 'いつまでに ほしいか きめた', s: 1 },
+        { t: 'ちょきんばこを 出した', s: 1 }
+      ]
+    },
+    {
+      id: 'neru', emoji: '🌙', tag: 'くらし',
+      goal: '毎日 9時に ねられるように なった',
+      cards: [
+        { t: '一週間 つづけて 9時に ねられた', s: 3 },
+        { t: '3日 つづけて できた', s: 3 },
+        { t: '9時に ふとんに 入れた', s: 3 },
+        { t: 'あさ、目ざましの 前に 起きた', s: 3 },
+        { t: '8時半に テレビと ゲームを やめた', s: 2 },
+        { t: 'おふろの 時間を 早めた', s: 2 },
+        { t: 'しゅくだいを ごはんの 前に おわらせた', s: 2 },
+        { t: 'できた日に カレンダーに 〇を つけた', s: 2 },
+        { t: '9時から ぎゃくに 何時に 何を するか 書いた', s: 1 },
+        { t: 'いま 何時に ねているか しらべた', s: 1 },
+        { t: 'カレンダーを かべに はった', s: 1 },
+        { t: '家ぞくに 「9時に ねる」と 言った', s: 1 }
+      ]
+    },
+    {
+      id: 'natsuyasumi', emoji: '🗓', tag: 'べんきょう',
+      goal: 'なつやすみの しゅくだいが ぜんぶ おわった',
+      cards: [
+        { t: 'ぜんぶ かばんに 入れた', s: 3 },
+        { t: 'さいごの 一つが おわった', s: 3 },
+        { t: 'のこりが 一つに なった', s: 3 },
+        { t: 'はんぶん おわった', s: 3 },
+        { t: '毎日 1ページずつ すすめた', s: 2 },
+        { t: 'いちばん 大変な ものから 手を つけた', s: 2 },
+        { t: 'カレンダーに いつ 何を やるか 書いた', s: 2 },
+        { t: '一日に やる りょうを きめた', s: 2 },
+        { t: 'しゅくだいを ぜんぶ つくえに ならべた', s: 1 },
+        { t: 'ぜんぶで いくつ あるか かぞえた', s: 1 },
+        { t: 'のこりの 日数を かぞえた', s: 1 },
+        { t: 'やる 時間を 毎日 いつに するか きめた', s: 1 }
+      ]
+    },
+    {
+      id: 'odekake', emoji: '🎟', tag: 'おかね',
+      goal: '家ぞくで 行きたい 場しょに 行けた',
+      cards: [
+        { t: 'その場しょに ついた', s: 3 },
+        { t: '家を 出た', s: 3 },
+        { t: 'よやくが とれた', s: 3 },
+        { t: '家ぞく みんなが 「行こう」と 言った', s: 3 },
+        { t: '行き方と かかる 時間を 調べた', s: 2 },
+        { t: 'みんなの あいている 日を 聞いた', s: 2 },
+        { t: 'いくら かかるか 調べた', s: 2 },
+        { t: '何が おもしろいか 紙に まとめた', s: 2 },
+        { t: '行きたい ばしょを 一つに きめた', s: 1 },
+        { t: 'カレンダーを 見た', s: 1 },
+        { t: 'お父さんに 「そうだんが ある」と 言った', s: 1 },
+        { t: '行きたい りゆうを 3つ 考えた', s: 1 }
+      ]
+    },
+
+    /* ── ひととの間 ─────────────────────────────── */
+    {
+      id: 'nakanaori', emoji: '🤝', tag: 'ひと',
+      goal: 'けんかした 友だちと また あそべるように なった',
+      cards: [
+        { t: 'いっしょに あそんで わらえた', s: 3 },
+        { t: '「またあそぼ」と 言えた', s: 3 },
+        { t: '「ごめんね」が 言えた', s: 3 },
+        { t: '目を 見て 話せた', s: 3 },
+        { t: '話しかける タイミングを 見つけた', s: 2 },
+        { t: '相手が 何が いやだったのか 考えた', s: 2 },
+        { t: 'じぶんの わるかった ところを 一つ 見つけた', s: 2 },
+        { t: 'だれかに そうだんした', s: 2 },
+        { t: '何が あったのか 思い出して 書いた', s: 1 },
+        { t: '一日 おいて 気もちを おちつけた', s: 1 },
+        { t: 'まだ 友だちで いたいか じぶんに 聞いた', s: 1 },
+        { t: '言う ことばを 声に出して れんしゅうした', s: 1 }
+      ]
+    },
+    {
+      id: 'happyou', emoji: '🗣', tag: 'ひと',
+      goal: 'みんなの 前で はっぴょう できた',
+      cards: [
+        { t: 'さいごまで 話しきって せきに もどれた', s: 3 },
+        { t: '顔を 上げて 話せた', s: 3 },
+        { t: '大きな 声が 出た', s: 3 },
+        { t: '手を あげて 前に 出られた', s: 3 },
+        { t: '家ぞくの 前で とおしで 話した', s: 2 },
+        { t: 'かがみの 前で れんしゅうした', s: 2 },
+        { t: '何分で 話しおわるか はかった', s: 2 },
+        { t: '話す ことを 紙に 書いた', s: 2 },
+        { t: 'つたえたい ことを 一つに きめた', s: 1 },
+        { t: 'さいしょの 一行だけ 考えた', s: 1 },
+        { t: 'どこが こわいか 言ってみた', s: 1 },
+        { t: 'ふかく いきを すった', s: 1 }
+      ]
+    },
+    {
+      id: 'pet', emoji: '🐹', tag: 'ひと',
+      goal: 'ペットの せわを 一人で できるように なった',
+      cards: [
+        { t: '一週間 だれにも 言われずに できた', s: 3 },
+        { t: '毎日 ぜんぶの せわが できた', s: 3 },
+        { t: 'わすれた日が なくなった', s: 3 },
+        { t: 'ぐあいが わるいのに 気づけた', s: 3 },
+        { t: 'できた日に カレンダーに 〇を つけた', s: 2 },
+        { t: 'えさの りょうを おぼえた', s: 2 },
+        { t: '朝と 夜、いつ やるか きめた', s: 2 },
+        { t: 'そうじの 仕方を 教わった', s: 2 },
+        { t: 'やる ことを ぜんぶ 書き出した', s: 1 },
+        { t: '「わたしが やる」と 家ぞくに 言った', s: 1 },
+        { t: 'えさの ばしょを たしかめた', s: 1 },
+        { t: '紙に 書いて ケージに はった', s: 1 }
+      ]
+    },
+    {
+      id: 'yasai', emoji: '🌱', tag: 'つくる',
+      goal: 'そだてた やさいが 食べられた',
+      cards: [
+        { t: 'しゅうかくして 食たくに 出した', s: 3 },
+        { t: '赤く なるまで まてた', s: 3 },
+        { t: 'みが なった', s: 3 },
+        { t: '花が さいた', s: 3 },
+        { t: '毎日 水を あげつづけた', s: 2 },
+        { t: 'ささえの ぼうを 立てた', s: 2 },
+        { t: 'なえを うえた', s: 2 },
+        { t: '日なたに はちを おいた', s: 2 },
+        { t: 'そだてる やさいを きめた', s: 1 },
+        { t: 'つちと はちを 買ってきた', s: 1 },
+        { t: 'そだて方を 調べた', s: 1 },
+        { t: 'いつ しゅうかく できるか 見た', s: 1 }
+      ]
+    }
+  ];
+
+  /* 高さの よび名。画面と ふりかえりで つかう */
+  IK.SIZE = {
+    3: { name: 'ゴールの すぐ手前', short: 'ゴールに 近い', mark: '●●●' },
+    2: { name: 'とちゅう', short: 'とちゅう', mark: '●●' },
+    1: { name: 'いますぐ できる', short: 'いますぐ', mark: '●' }
+  };
+
+  /* おだいの ふだ に つける いろ */
+  IK.TAGS = {
+    'くらし': '#6fc3a6',
+    'できるように': '#e8944a',
+    'べんきょう': '#7fa8e8',
+    'つくる': '#d78fc0',
+    'おかね': '#e0c14a',
+    'ひと': '#9b8fe0'
+  };
+
+  /* id を つけていない カードに 通し番号を ふる（記録で 使う） */
+  IK.THEMES.forEach(function (th) {
+    th.cards.forEach(function (c, i) { c.id = th.id + '-' + i; });
+  });
+
+})(window);
+
+</script>
+<script>
+/* ============================================================
+   いっこまえ / IKKOMAE   きろくの ほぞん
+   すべて この端末の localStorage に保存します。外には一切送りません。
+   ============================================================ */
+(function (root) {
+  'use strict';
+
+  var IK = root.IK || (root.IK = {});
+  var KEY = 'ikkomae.v1';
+
+  var defaults = {
+    names: { kid: 'こども', adult: 'おとな' },
+    mode: 2,                 // 1 = ひとりでやる / 2 = ふたりでやる
+    runs: [],                // 新しい順。{ at, theme, goal, emoji, roads[], todo, done, doneAt }
+    seen: {},                // themeId -> やった回数。おなじお題ばかり出さないため
+    streak: { days: 0, best: 0, last: '' },   // 「やった」を記録した日の連続
+    counts: { runs: 0, dones: 0 },
+    ui: { seenIntro: false }
+  };
+
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+  function today() {
+    var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+
+  /* 'YYYY-MM-DD' 同士の日数の差 */
+  function dayDiff(a, b) {
+    var pa = a.split('-'), pb = b.split('-');
+    return Math.round((Date.UTC(+pb[0], +pb[1] - 1, +pb[2]) - Date.UTC(+pa[0], +pa[1] - 1, +pa[2])) / 86400000);
+  }
+
+  /* 日づけを 数に する。おだいを 日がわりで えらぶのに つかう */
+  function daySeed(d) {
+    var p = (d || today()).split('-');
+    return (+p[0]) * 372 + (+p[1]) * 31 + (+p[2]);
+  }
+
+  var Store = IK.store = {
+    data: clone(defaults),
+
+    load: function () {
+      try {
+        var raw = root.localStorage && root.localStorage.getItem(KEY);
+        if (raw) {
+          var p = JSON.parse(raw) || {};
+          this.data = {
+            names: Object.assign(clone(defaults.names), p.names || {}),
+            mode: p.mode === 1 ? 1 : 2,
+            runs: p.runs || [],
+            seen: p.seen || {},
+            streak: Object.assign(clone(defaults.streak), p.streak || {}),
+            counts: Object.assign(clone(defaults.counts), p.counts || {}),
+            ui: Object.assign(clone(defaults.ui), p.ui || {})
+          };
+        }
+      } catch (e) { /* こわれていたら はじめから */ }
+      return this.data;
+    },
+
+    save: function () {
+      try { root.localStorage.setItem(KEY, JSON.stringify(this.data)); } catch (e) {}
+    },
+
+    /* ── なまえ・にんずう ── */
+    setName: function (who, name) {
+      name = String(name || '').trim().slice(0, 8);
+      if (!name) return;
+      this.data.names[who] = name;
+      this.save();
+    },
+    setMode: function (n) { this.data.mode = (n === 1 ? 1 : 2); this.save(); },
+    nameOf: function (who) { return this.data.names[who] || (who === 'kid' ? 'こども' : 'おとな'); },
+
+    /* ── みちを 1本 記録する ──
+       roads は [{ who, name, steps:[{id,t,s}, x3] }] */
+    addRun: function (theme, roads) {
+      var rec = {
+        at: today(),
+        theme: theme.id,
+        goal: theme.goal,
+        emoji: theme.emoji,
+        roads: roads.map(function (r) {
+          return {
+            who: r.who,
+            name: r.name,
+            steps: r.steps.map(function (c) { return { id: c.id, t: c.t, s: c.s }; })
+          };
+        }),
+        todo: null,
+        done: false,
+        doneAt: ''
+      };
+      this.data.runs.unshift(rec);
+      if (this.data.runs.length > 300) this.data.runs.length = 300;
+      this.data.seen[theme.id] = (this.data.seen[theme.id] || 0) + 1;
+      this.data.counts.runs++;
+      this.save();
+      return rec;
+    },
+
+    /* ── きょうやる 一手を きめる ── */
+    setTodo: function (rec, card, who) {
+      rec.todo = { id: card.id, t: card.t, s: card.s, who: who };
+      rec.done = false;
+      rec.doneAt = '';
+      this.save();
+    },
+
+    /* まだ「やった？」を 聞いていない やくそく（新しい順に さがす） */
+    pendingTodo: function () {
+      var runs = this.data.runs;
+      for (var i = 0; i < runs.length; i++) {
+        if (runs[i].todo && !runs[i].done) return runs[i];
+      }
+      return null;
+    },
+
+    /* やった と 答えたとき。ここでだけ 火が のびる */
+    markDone: function (rec, ok) {
+      if (!rec || !rec.todo) return;
+      if (!ok) {                       /* まだ、なら やくそくを といて 次に すすむ */
+        rec.todo = null;
+        this.save();
+        return;
+      }
+      rec.done = true;
+      rec.doneAt = today();
+      this.data.counts.dones++;
+      this.touchStreak();
+      this.save();
+    },
+
+    /* ── 火（つづいた日数） ──
+       のびるのは「やった」と 答えた日だけ。道を 作っただけでは のびない。
+       1日の ぬけは ゆるす。1日 できなかっただけで 全部 消えるのは、つづける敵なので。 */
+    touchStreak: function () {
+      var t = today(), s = this.data.streak;
+      if (s.last === t) return s;
+      var gap = s.last ? dayDiff(s.last, t) : 999;
+      s.days = (gap <= 2) ? s.days + 1 : 1;
+      s.last = t;
+      if (s.days > s.best) s.best = s.days;
+      this.save();
+      return s;
+    },
+    streakAlive: function () {
+      var s = this.data.streak;
+      return s.last ? dayDiff(s.last, today()) <= 2 : false;
+    },
+
+    /* ── おだいを えらぶ ──
+       まだ やっていない ものを 先に。ぜんぶ やったら 回数の 少ない ものから。
+       おなじ日に 何度 ひらいても おなじ おだいが 出る（n を ずらすと 次のおだい）。 */
+    pickTheme: function (n) {
+      var seen = this.data.seen, list = IK.THEMES.slice();
+      list.sort(function (a, b) {
+        var d = (seen[a.id] || 0) - (seen[b.id] || 0);
+        if (d) return d;
+        return a.id < b.id ? -1 : 1;
+      });
+      var least = seen[list[0].id] || 0;
+      var pool = list.filter(function (t) { return (seen[t.id] || 0) === least; });
+      var i = (daySeed() + (n || 0)) % pool.length;
+      return pool[i];
+    },
+
+    /* ── かきだし・よみこみ ── */
+    exportText: function () {
+      return JSON.stringify({ v: 1, savedAt: today(), data: this.data }, null, 2);
+    },
+    importText: function (text) {
+      var p = JSON.parse(text), d = (p && p.data) ? p.data : p;
+      if (!d || typeof d !== 'object' || !d.runs) throw new Error('かたちが ちがいます');
+      this.data = {
+        names: Object.assign(clone(defaults.names), d.names || {}),
+        mode: d.mode === 1 ? 1 : 2,
+        runs: d.runs || [],
+        seen: d.seen || {},
+        streak: Object.assign(clone(defaults.streak), d.streak || {}),
+        counts: Object.assign(clone(defaults.counts), d.counts || {}),
+        ui: Object.assign(clone(defaults.ui), d.ui || {})
+      };
+      this.save();
+    },
+    reset: function () { this.data = clone(defaults); this.save(); }
+  };
+
+  IK.today = today;
+  IK.dayDiff = dayDiff;
+  IK.daySeed = daySeed;
+
+})(window);
+
+</script>
+<script>
+/* ============================================================
+   いっこまえ / IKKOMAE   1かいぶんの すすめ方
+   ------------------------------------------------------------
+   ゴールから 3回 くだる。1回ごとに カードを 6まい 配る。
+   6まいには かならず 3つの 高さ（すぐ手前・とちゅう・いますぐ）を
+   まぜて 入れる。ここを かたよらせると
+   「いま これを えらぶと 大きすぎないか」を はかる練習に ならない。
+   ============================================================ */
+(function (root) {
+  'use strict';
+
+  var IK = root.IK || (root.IK = {});
+  var STEPS = 3;              // 何回 「いっこまえは？」と 聞くか
+  var HAND = 6;               // 1回に 配る まい数
+  var PER_SIZE = 2;           // 高さごとに さいてい 何まい 出すか
+
+  /* たねから おなじ ならびを 作る（開きなおしても 同じ手札が 出るように） */
+  function rng(seed) {
+    var s = (seed >>> 0) || 1;
+    return function () {
+      s ^= s << 13; s >>>= 0;
+      s ^= s >> 17;
+      s ^= s << 5; s >>>= 0;
+      return s / 4294967296;
+    };
+  }
+
+  function shuffled(arr, seed) {
+    var a = arr.slice(), r = rng(seed);
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(r() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function hash(str) {
+    var h = 2166136261;
+    for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = (h * 16777619) >>> 0; }
+    return h >>> 0;
+  }
+
+  var Game = IK.game = {
+    STEPS: STEPS,
+
+    /* おだいと まわし番号から、そのおだい 用の たねを 作る */
+    seedOf: function (theme, n) {
+      return (IK.daySeed() * 131 + hash(theme.id) + (n || 0) * 7919) >>> 0;
+    },
+
+    /* 高さごとに ならべ直した ふだの 山。ふたりとも 同じ山から ひく */
+    piles: function (theme, seed) {
+      var p = { 1: [], 2: [], 3: [] };
+      theme.cards.forEach(function (c) { p[c.s].push(c); });
+      [1, 2, 3].forEach(function (s) { p[s] = shuffled(p[s], seed + s * 977); });
+      return p;
+    },
+
+    /* step 回目（0..2）に 配る 6まい。
+       used は その人が すでに つかった カードの id */
+    deal: function (theme, seed, step, used) {
+      var piles = this.piles(theme, seed), hand = [];
+      var taken = {};
+      [3, 2, 1].forEach(function (s) {
+        var n = 0;
+        piles[s].forEach(function (c) {
+          if (n >= PER_SIZE) return;
+          if (used.indexOf(c.id) >= 0 || taken[c.id]) return;
+          hand.push(c); taken[c.id] = 1; n++;
+        });
+      });
+      /* 高さが かたよって 6まいに とどかないときは 残りから 足す */
+      if (hand.length < HAND) {
+        [3, 2, 1].forEach(function (s) {
+          piles[s].forEach(function (c) {
+            if (hand.length >= HAND) return;
+            if (used.indexOf(c.id) >= 0 || taken[c.id]) return;
+            hand.push(c); taken[c.id] = 1;
+          });
+        });
+      }
+      /* 画面での ならびは 毎回 まぜる。高さの じゅんに ならんでいると 見た目で わかってしまう */
+      return shuffled(hand, seed + step * 4093 + used.length * 17);
+    },
+
+    /* できた みちの かたちを 読む。○×は つけない。
+       steps[0] が ゴールの いっこ前、steps[2] が いちばん下（きょうやる）。 */
+    shape: function (steps) {
+      var v = steps.map(function (c) { return c.s; });
+      var allSame = v[0] === v[1] && v[1] === v[2];
+      var down = v[0] >= v[1] && v[1] >= v[2];
+      var strict = v[0] > v[1] && v[1] > v[2];
+
+      if (strict) return {
+        key: 'straight', mark: '🪜',
+        title: 'きれいな はしごに なった',
+        body: 'ゴールの すぐ手前 → とちゅう → いますぐ できること。大きい ところから 小さい ところへ、ちゃんと おりてきたね。'
+      };
+      if (allSame && v[0] === 3) return {
+        key: 'allbig', mark: '🏔',
+        title: 'ぜんぶ ゴールの すぐ手前だね',
+        body: 'どれも もう ほとんど できている ところ。ここから 下に、もう ひとつ 小さく わけられないかな？'
+      };
+      if (allSame && v[0] === 1) return {
+        key: 'allsmall', mark: '🐜',
+        title: 'ぜんぶ いますぐ できる ことだね',
+        body: 'すぐ 手が うごくのは つよい。この 3つで ゴールまで とどくか、上から もう一回 見てみよう。'
+      };
+      if (allSame) return {
+        key: 'allmid', mark: '🌫',
+        title: 'ぜんぶ とちゅうの ことだね',
+        body: 'ゴールの すぐ手前と、いますぐ できることを さがすと、道が もっと はっきりするかも。'
+      };
+      if (down) return {
+        key: 'down', mark: '↘️',
+        title: 'だんだん 小さく なっていったね',
+        body: '上から 下へ、ちゃんと 近づいてきている。おなじ 高さが つづいた ところは、もう一つ 分けられるかも。'
+      };
+      return {
+        key: 'up', mark: '🔀',
+        title: 'とちゅうで また 大きく なったね',
+        body: '下に いくほど 小さく なるのが 「いっこまえ」。じゅんばんを 入れかえたら、どんな みちに なるかな？'
+      };
+    },
+
+    /* ふたりの みちで、おなじ カードを えらんだ ところ */
+    sameAt: function (a, b) {
+      var out = [];
+      for (var i = 0; i < STEPS; i++) {
+        out.push(!!(a && b && a.steps[i] && b.steps[i] && a.steps[i].id === b.steps[i].id));
+      }
+      return out;
+    },
+
+    /* 「きょうやる」の こうほ。ふたりの みちの カードを 小さい じゅんに */
+    todoCandidates: function (roads) {
+      var seen = {}, out = [];
+      roads.forEach(function (r) {
+        r.steps.forEach(function (c, i) {
+          if (seen[c.id]) return;
+          seen[c.id] = 1;
+          out.push({ id: c.id, t: c.t, s: c.s, who: r.who, bottom: i === STEPS - 1 });
+        });
+      });
+      out.sort(function (x, y) {
+        if (x.s !== y.s) return x.s - y.s;                 /* 小さい ものが 上 */
+        return (y.bottom ? 1 : 0) - (x.bottom ? 1 : 0);    /* いちばん下だった ものを 先に */
+      });
+      return out;
+    }
+  };
+
+})(window);
+
+</script>
+<script>
+/* ============================================================
+   いっこまえ / IKKOMAE   画面
+   ------------------------------------------------------------
+   すすみ方
+     home ─→ handoff ─→ play(×3) ─→ handoff ─→ play(×3)
+          ─→ compare ─→ todo ─→ finish ─→ home
+   ひとりで やるときは handoff を とばして 1本だけ 作る。
+   ============================================================ */
+(function (root) {
+  'use strict';
+
+  var IK = root.IK;
+  var store = IK.store, game = IK.game;
+  var app, view = 'home';
+  var run = null;          // いま やっている 1かいぶん
+  var themeN = 0;          // 「べつの おだい」を おした 回数
+  var hidePromise = false; // この せっしょんの あいだだけ やくそくを ふせる
+
+  function $(id) { return document.getElementById(id); }
+  function h(html) { var d = document.createElement('div'); d.innerHTML = html; return d.firstElementChild; }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c];
+    });
+  }
+  function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+
+  function toast(msg) {
+    var t = h('<div class="toast">' + esc(msg) + '</div>');
+    document.body.appendChild(t);
+    setTimeout(function () { t.classList.add('go'); }, 10);
+    setTimeout(function () { t.remove(); }, 2100);
+  }
+
+  function szMark(s) { return (IK.SIZE[s] || { mark: '' }).mark; }
+
+  /* 何日前か */
+  function agoText(at) {
+    var d = IK.dayDiff(at, IK.today());
+    if (d <= 0) return 'きょう';
+    if (d === 1) return 'きのう';
+    return d + '日まえ';
+  }
+
+  /* ============================================================
+     上のバー
+     ============================================================ */
+  function renderHud() {
+    var s = store.data.streak, alive = store.streakAlive();
+    var f = $('hud-fire');
+    f.innerHTML = '🔥<b>' + (alive ? s.days : 0) + '</b>';
+    f.className = (alive && s.days > 0) ? '' : 'off';
+    var q = $('hud-quit');
+    q.style.display = (view === 'play' || view === 'handoff' || view === 'compare' || view === 'todo') ? '' : 'none';
+  }
+
+  function setView(v) {
+    view = v;
+    document.body.classList.toggle('noTab', v !== 'home' && v !== 'log' && v !== 'settings');
+    Array.prototype.forEach.call(document.querySelectorAll('#tabbar button'), function (b) {
+      b.classList.toggle('on', b.dataset.view === v);
+    });
+    render();
+    root.scrollTo(0, 0);
+  }
+
+  /* ============================================================
+     ホーム
+     ============================================================ */
+  function renderHome() {
+    var out = [];
+
+    if (!store.data.ui.seenIntro) {
+      out.push(
+        '<div class="panel">' +
+        '<div class="h">はじめての人へ</div>' +
+        '<p class="sub">「できるように なりたいこと」を <b>いちばん上</b> に おきます。<br>' +
+        'そこから <b>「じゃあ、いっこまえは？」</b> を 3回 くりかえして、下へ おりていきます。<br>' +
+        'いちばん下に のこったのが、<b>きょう やること</b> です。</p>' +
+        '<button class="big ghost" id="intro-ok">わかった</button>' +
+        '</div>'
+      );
+    }
+
+    var pend = store.pendingTodo();
+    if (pend && !hidePromise) {
+      var old = IK.dayDiff(pend.at, IK.today()) >= 2;
+      out.push(
+        '<div class="promise">' +
+        '<div class="lab">' + esc(agoText(pend.at)) + ' きめた やくそく</div>' +
+        '<div class="t">' + esc(pend.todo.t) + '</div>' +
+        '<div class="by">' + esc(store.nameOf(pend.todo.who)) + 'が えらんだ　／　ゴール：' + esc(pend.goal) + '</div>' +
+        '<button class="big" id="pr-done">やった！</button>' +
+        '<div class="row" style="margin-top:10px">' +
+        '<button class="mini" id="pr-later">まだ</button>' +
+        (old ? '<button class="mini danger" id="pr-drop">これは やめる</button>' : '') +
+        '</div>' +
+        '</div>'
+      );
+    }
+
+    var th = store.pickTheme(themeN);
+    var color = IK.TAGS[th.tag] || '#9dabbd';
+    out.push(
+      '<div class="theme" style="margin-top:' + (out.length ? '14px' : '0') + '">' +
+      '<span class="tag" style="color:' + color + '">' + esc(th.tag) + '</span>' +
+      '<div class="em">' + esc(th.emoji) + '</div>' +
+      '<div class="lab">きょうの ゴール</div>' +
+      '<div class="goal">' + esc(th.goal) + '</div>' +
+      '</div>'
+    );
+
+    out.push(
+      '<div class="panel" style="margin-top:14px">' +
+      '<div class="h">だれで やる？</div>' +
+      '<div class="seg">' +
+      '<button data-mode="2" class="' + (store.data.mode === 2 ? 'on' : '') + '">ふたりで<br><span style="font-size:11.5px;font-weight:600;color:var(--muted)">' + esc(store.nameOf('kid')) + ' と ' + esc(store.nameOf('adult')) + '</span></button>' +
+      '<button data-mode="1" class="' + (store.data.mode === 1 ? 'on' : '') + '">ひとりで</button>' +
+      '</div>' +
+      '<button class="big" id="go">はじめる</button>' +
+      '<button class="mini" id="another" style="width:100%;margin-top:10px">べつの おだいに する</button>' +
+      '</div>'
+    );
+
+    app.innerHTML = out.join('');
+
+    if ($('intro-ok')) $('intro-ok').onclick = function () {
+      store.data.ui.seenIntro = true; store.save(); render();
+    };
+    if ($('pr-done')) $('pr-done').onclick = function () {
+      store.markDone(pend, true);
+      buzz([10, 40, 20]);
+      toast('🔥 ' + store.data.streak.days + '日 つづいてるよ');
+      renderHud(); render();
+    };
+    if ($('pr-later')) $('pr-later').onclick = function () { hidePromise = true; render(); };
+    if ($('pr-drop')) $('pr-drop').onclick = function () { store.markDone(pend, false); render(); };
+
+    Array.prototype.forEach.call(app.querySelectorAll('[data-mode]'), function (b) {
+      b.onclick = function () { store.setMode(+b.dataset.mode); render(); };
+    });
+    $('another').onclick = function () { themeN++; render(); };
+    $('go').onclick = startRun;
+  }
+
+  /* ============================================================
+     1かいの はじまり
+     ============================================================ */
+  function startRun() {
+    var th = store.pickTheme(themeN);
+    var roads = [{ who: 'kid', name: store.nameOf('kid'), steps: [] }];
+    if (store.data.mode === 2) roads.push({ who: 'adult', name: store.nameOf('adult'), steps: [] });
+    run = { theme: th, seed: game.seedOf(th, themeN), roads: roads, idx: 0, step: 0, todo: null, rec: null };
+    setView(store.data.mode === 2 ? 'handoff' : 'play');
+  }
+
+  function quitRun() {
+    run = null;
+    hidePromise = false;
+    setView('home');
+  }
+
+  /* ============================================================
+     ばんの わたし
+     ============================================================ */
+  function renderHandoff() {
+    var r = run.roads[run.idx];
+    var first = run.idx === 0;
+    app.innerHTML =
+      '<div class="handoff">' +
+      '<div class="em">' + (first ? '🚀' : '🤝') + '</div>' +
+      (first ? '' : '<div class="note">できた！ みちは かくしたよ 🙈</div>') +
+      '<div class="who">' + esc(r.name) + ' の ばん</div>' +
+      '<div class="note">' + (first ? 'スマホを ' + esc(r.name) + ' に わたしてね' : 'つぎの人に わたしてね。<br>まえの人の こたえは 見えないよ') + '</div>' +
+      '</div>' +
+      '<div class="theme" style="margin-top:18px">' +
+      '<div class="em">' + esc(run.theme.emoji) + '</div>' +
+      '<div class="lab">ゴール</div>' +
+      '<div class="goal">' + esc(run.theme.goal) + '</div>' +
+      '</div>' +
+      '<button class="big" id="hstart">はじめる</button>';
+    $('hstart').onclick = function () { setView('play'); };
+  }
+
+  /* ============================================================
+     えらぶ画面
+     ============================================================ */
+  /* えらんだ ところまでを はしごで 見せる。
+     まだの ぶんで 画面を うめると カードが 下に おされて 見えなくなるので、
+     のこりは 1行に まとめる。 */
+  function roadHtml(steps) {
+    var out = ['<div class="rung goal"><span class="n">⭐</span>' + esc(run.theme.goal) + '</div>'];
+    steps.forEach(function (c, i) {
+      out.push('<div class="arrow">↑</div>');
+      out.push('<div class="rung"><span class="n">' + (i + 1) + '</span>' + esc(c.t) + '</div>');
+    });
+    var rest = game.STEPS - steps.length;
+    if (rest > 0) {
+      out.push('<div class="arrow">↑</div>');
+      out.push('<div class="rung blank"><span class="n">' + (steps.length + 1) + '</span>いま えらんでいる ところ</div>');
+    }
+    return '<div class="road">' + out.join('') + '</div>';
+  }
+
+  function renderPlay() {
+    var r = run.roads[run.idx];
+    var used = r.steps.map(function (c) { return c.id; });
+    var hand = game.deal(run.theme, run.seed, run.step, used);
+    var last = r.steps.length ? r.steps[r.steps.length - 1].t : run.theme.goal;
+
+    var head = (store.data.mode === 2)
+      ? '<div class="cname ' + r.who + '">' + esc(r.name) + ' の ばん</div>' : '';
+
+    app.innerHTML =
+      head +
+      roadHtml(r.steps) +
+      '<div class="ask">じゃあ、その いっこまえは？' +
+      '<small>「' + esc(last) + '」の まえに できていること' +
+      '</small></div>' +
+      '<div class="count">' + (run.step + 1) + ' / ' + game.STEPS + '</div>' +
+      '<div class="hand" id="hand"></div>';
+
+    var host = $('hand');
+    hand.forEach(function (c) {
+      var b = h('<button class="pick">' + esc(c.t) + '</button>');
+      b.onclick = function () {
+        if (b.classList.contains('chosen')) return;
+        Array.prototype.forEach.call(host.querySelectorAll('.pick'), function (x) { x.disabled = true; });
+        b.classList.add('chosen');
+        buzz(12);
+        setTimeout(function () { choose(c); }, 240);
+      };
+      host.appendChild(b);
+    });
+  }
+
+  function choose(card) {
+    var r = run.roads[run.idx];
+    r.steps.push(card);
+    run.step++;
+    if (run.step < game.STEPS) { render(); root.scrollTo(0, 0); return; }
+    /* この人の みちが できた */
+    if (run.idx < run.roads.length - 1) {
+      run.idx++; run.step = 0;
+      setView('handoff');
+    } else {
+      run.rec = store.addRun(run.theme, run.roads);
+      setView('compare');
+    }
+  }
+
+  /* ============================================================
+     みくらべ
+     ============================================================ */
+  function renderCompare() {
+    var roads = run.roads, two = roads.length === 2;
+    var same = two ? game.sameAt(roads[0], roads[1]) : [false, false, false];
+
+    /* 段ごとに 横に ならべる。1つ目・2つ目…が 左右で そろっていないと 見くらべに ならない */
+    var cells = roads.map(function (r) {
+      return '<div class="cname ' + r.who + '">' + esc(r.name) + '</div>';
+    });
+    for (var st = 0; st < game.STEPS; st++) {
+      roads.forEach(function (r) {
+        var c = r.steps[st];
+        cells.push('<div class="crung' + (same[st] ? ' same' : '') + '">' +
+          '<span class="sz">' + szMark(c.s) + '　' + esc(IK.SIZE[c.s].short) + '</span>' +
+          esc(c.t) + '</div>');
+      });
+    }
+
+    /* ふたりの みちの かたちが おなじなら、おなじ文を 2回 出さない */
+    var reads = roads.map(function (r) { return { r: r, s: game.shape(r.steps) }; });
+    var merged = (reads.length === 2 && reads[0].s.key === reads[1].s.key);
+    var shapes = (merged ? [reads[0]] : reads).map(function (x) {
+      var who = merged ? 'ふたりとも' : x.r.name;
+      return '<div class="shape"><span class="m">' + x.s.mark + '</span>' +
+        '<div class="t">' + esc(who) + '：' + esc(x.s.title) + '</div>' +
+        '<div class="b">' + esc(x.s.body) + '</div></div>';
+    });
+
+    var sameCount = same.filter(Boolean).length;
+
+    app.innerHTML =
+      '<div class="theme"><div class="em">' + esc(run.theme.emoji) + '</div>' +
+      '<div class="lab">ゴール</div><div class="goal">' + esc(run.theme.goal) + '</div></div>' +
+      '<div class="panel" style="margin-top:14px;padding-bottom:8px">' +
+      '<div class="h">ふたりの みち　（上が ゴールに 近いほう）</div>' +
+      (two && sameCount ? '<div class="samemark">おなじ カードを ' + sameCount + 'こ えらんだ ✨</div>' : '') +
+      '<div class="compare' + (two ? '' : ' one') + '">' + cells.join('') + '</div>' +
+      '</div>' +
+      shapes.join('') +
+      '<div class="panel" style="margin-top:14px">' +
+      '<p class="sub">●が 多いほど <b>ゴールに 近い</b>、●が 少ないほど <b>いますぐ できる</b> こと。<br>' +
+      'えらんでいる ときは 見えないようにして あります。<br><br>' +
+      '<b>おたがいに 聞いてみよう：「なんで それを えらんだの？」</b></p>' +
+      '</div>' +
+      '<button class="big" id="tonext">きょう やる ことを きめる</button>';
+
+    $('tonext').onclick = function () { setView('todo'); };
+  }
+
+  /* ============================================================
+     きょう やる ことを 1つ
+     ============================================================ */
+  function renderTodo() {
+    var cands = game.todoCandidates(run.roads);
+    app.innerHTML =
+      '<div class="rung goal"><span class="n">⭐</span>' + esc(run.theme.goal) + '</div>' +
+      '<div class="ask">きょう やるのは どれ？' +
+      '<small>1つだけ えらぶ。●が 少ないほど すぐ できる</small></div>' +
+      '<div class="hand" id="hand"></div>';
+
+    var host = $('hand');
+    cands.forEach(function (c) {
+      var who = store.data.mode === 2 ? '<span style="color:var(--dim);font-size:11.5px">（' + esc(store.nameOf(c.who)) + '）</span> ' : '';
+      var b = h('<button class="pick"><span style="color:var(--dim);font-size:11px;letter-spacing:.16em">' +
+        szMark(c.s) + '</span><br>' + who + esc(c.t) + '</button>');
+      b.onclick = function () {
+        Array.prototype.forEach.call(host.querySelectorAll('.pick'), function (x) { x.disabled = true; });
+        b.classList.add('chosen');
+        buzz([8, 30, 14]);
+        store.setTodo(run.rec, c, c.who);
+        run.todo = c;
+        setTimeout(function () { setView('finish'); }, 260);
+      };
+      host.appendChild(b);
+    });
+  }
+
+  /* ============================================================
+     しあげ
+     ============================================================ */
+  function renderFinish() {
+    var c = run.todo;
+    app.innerHTML =
+      '<div class="finish"><div class="em">🎉</div><div class="t">みちが できた！</div></div>' +
+      '<div class="promise" style="margin-top:10px">' +
+      '<div class="lab">きょう やること</div>' +
+      '<div class="t">' + esc(c.t) + '</div>' +
+      '<div class="by">ゴール：' + esc(run.theme.goal) + '</div>' +
+      '</div>' +
+      '<div class="panel" style="margin-top:14px">' +
+      '<p class="sub">つぎに ひらいたとき、<b>「やった？」</b> と 聞きます。<br>' +
+      '🔥は 道を 作った日ではなく、<b>じっさいに やった日</b> だけ のびます。</p>' +
+      '</div>' +
+      '<button class="big" id="fin">おわり</button>';
+    $('fin').onclick = function () { run = null; hidePromise = false; setView('home'); };
+  }
+
+  /* ============================================================
+     きろく
+     ============================================================ */
+  function renderLog() {
+    var d = store.data, s = d.streak;
+    var out = [
+      '<div class="stats">' +
+      '<div class="stat"><b>' + d.counts.runs + '</b><span>つくった みち</span></div>' +
+      '<div class="stat"><b>' + d.counts.dones + '</b><span>やった こと</span></div>' +
+      '<div class="stat"><b>' + (store.streakAlive() ? s.days : 0) + '</b><span>つづいた日（さいこう ' + s.best + '）</span></div>' +
+      '</div>'
+    ];
+
+    if (!d.runs.length) {
+      out.push('<div class="panel" style="margin-top:14px"><p class="sub">まだ 何も ありません。<br>「あそぶ」から はじめてみてください。</p></div>');
+    } else {
+      out.push('<div class="h" style="margin:20px 0 10px">つくった みち</div>');
+      d.runs.slice(0, 60).forEach(function (r) {
+        var lines = r.roads.map(function (rd) {
+          return '<div style="margin-top:8px"><span style="font-size:11.5px;font-weight:800;color:var(--' + rd.who + ')">' +
+            esc(rd.name) + '</span><br><span style="font-size:13px;color:var(--muted);line-height:1.7">' +
+            rd.steps.map(function (c) { return esc(c.t); }).join(' <span style="color:var(--dim)">←</span> ') +
+            '</span></div>';
+        }).join('');
+        var todo = '';
+        if (r.todo) {
+          todo = '<div class="todo' + (r.done ? ' ok' : '') + '">' +
+            (r.done ? '✅ やった（' + esc(r.doneAt) + '）：' : '🎯 きめた こと：') + esc(r.todo.t) + '</div>';
+        }
+        out.push(
+          '<div class="logitem">' +
+          '<div class="top"><span class="em">' + esc(r.emoji || '🎯') + '</span>' +
+          '<span class="g">' + esc(r.goal) + '</span>' +
+          '<span class="d">' + esc(r.at) + '</span></div>' +
+          lines + todo +
+          '</div>'
+        );
+      });
+    }
+    app.innerHTML = out.join('');
+  }
+
+  /* ============================================================
+     せってい
+     ============================================================ */
+  function renderSettings() {
+    app.innerHTML =
+      '<div class="panel">' +
+      '<div class="h">なまえ</div>' +
+      '<div class="field"><label>こども</label><input id="n-kid" maxlength="8" value="' + esc(store.nameOf('kid')) + '"></div>' +
+      '<div class="field"><label>おとな</label><input id="n-adult" maxlength="8" value="' + esc(store.nameOf('adult')) + '"></div>' +
+      '<p class="sub">画面に 出る よび名です。この 端末の 中だけに 入ります。</p>' +
+      '</div>' +
+
+      '<div class="panel">' +
+      '<div class="h">このアプリの こと</div>' +
+      '<p class="sub">おだいは ' + IK.THEMES.length + 'こ 入っています。まだ やっていない ものから 日がわりで 出ます。<br><br>' +
+      '正かいは ありません。どの カードを えらんでも みちに なります。<br>' +
+      'カードには「ゴールに どれくらい 近いか」の 高さが かくれていて、えらび終わってから 見えます。</p>' +
+      '</div>' +
+
+      '<div class="panel">' +
+      '<div class="h">きろくの もちだし</div>' +
+      '<p class="sub">きろくは この端末の ブラウザの中だけに あります。どこにも 送っていません。<br>' +
+      '別の 端末に うつすときは、下の 文を コピーして はりつけてください。</p>' +
+      '<textarea class="io" id="io" spellcheck="false">' + esc(store.exportText()) + '</textarea>' +
+      '<div class="row" style="margin-top:10px">' +
+      '<button class="mini" id="copy">コピーする</button>' +
+      '<button class="mini" id="load">はりつけた 文を よみこむ</button>' +
+      '</div>' +
+      '</div>' +
+
+      '<div class="panel">' +
+      '<div class="h">けす</div>' +
+      '<button class="mini danger" id="reset" style="width:100%">きろくを ぜんぶ けす</button>' +
+      '</div>';
+
+    $('n-kid').onchange = function () { store.setName('kid', this.value); toast('なまえを かえました'); };
+    $('n-adult').onchange = function () { store.setName('adult', this.value); toast('なまえを かえました'); };
+
+    $('copy').onclick = function () {
+      var ta = $('io');
+      ta.select();
+      try {
+        if (navigator.clipboard) navigator.clipboard.writeText(ta.value);
+        else document.execCommand('copy');
+        toast('コピーしました');
+      } catch (e) { toast('えらべる 状態に しました'); }
+    };
+    $('load').onclick = function () {
+      try {
+        store.importText($('io').value);
+        toast('よみこみました');
+        renderHud(); render();
+      } catch (e) { toast('よみこめませんでした'); }
+    };
+    $('reset').onclick = function () {
+      if (!root.confirm('きろくを ぜんぶ けします。もどせません。いいですか？')) return;
+      store.reset(); themeN = 0; hidePromise = false;
+      renderHud(); setView('home');
+      toast('けしました');
+    };
+  }
+
+  /* ============================================================
+     ふりわけ
+     ============================================================ */
+  function render() {
+    if (view === 'play' && !run) view = 'home';
+    if (view === 'handoff' && !run) view = 'home';
+    if ((view === 'compare' || view === 'todo' || view === 'finish') && !run) view = 'home';
+
+    if (view === 'home') renderHome();
+    else if (view === 'handoff') renderHandoff();
+    else if (view === 'play') renderPlay();
+    else if (view === 'compare') renderCompare();
+    else if (view === 'todo') renderTodo();
+    else if (view === 'finish') renderFinish();
+    else if (view === 'log') renderLog();
+    else if (view === 'settings') renderSettings();
+    renderHud();
+  }
+
+  /* ============================================================
+     たちあげ
+     ============================================================ */
+  function boot() {
+    app = $('app');
+    store.load();
+
+    Array.prototype.forEach.call(document.querySelectorAll('#tabbar button'), function (b) {
+      b.onclick = function () {
+        if (run && b.dataset.view !== view) {
+          if (!root.confirm('とちゅうです。やめて いいですか？')) return;
+          run = null;
+        }
+        setView(b.dataset.view);
+      };
+    });
+    $('hud-quit').onclick = function () {
+      if (!root.confirm('とちゅうです。やめて いいですか？')) return;
+      quitRun();
+    };
+
+    setView('home');
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+
+})(window);
+
+</script>
+</body>
+</html>
